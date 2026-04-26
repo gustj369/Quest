@@ -1,0 +1,152 @@
+import { useState, useCallback, useEffect } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useQuests } from './hooks/useQuests.js'
+import { useCharacter } from './hooks/useCharacter.js'
+import TabBar from './components/TabBar.jsx'
+import LevelUpModal from './components/LevelUpModal.jsx'
+import SettingsSheet from './components/SettingsSheet.jsx'
+import InstallBanner from './components/InstallBanner.jsx'
+import HomeScreen from './screens/HomeScreen.jsx'
+import CategoriesScreen from './screens/CategoriesScreen.jsx'
+import CharacterScreen from './screens/CharacterScreen.jsx'
+
+const screenVariants = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.2 } },
+  exit:    { opacity: 0, y: -4, transition: { duration: 0.15 } },
+}
+
+export default function App() {
+  const [tab, setTab] = useState('home')
+  const [showSettings, setShowSettings] = useState(false)
+
+  const {
+    quests,
+    categories,
+    completeQuest,
+    addQuest,
+    deleteQuest,
+    addCategory,
+    resetAllData,
+  } = useQuests()
+
+  const {
+    character,
+    level,
+    xpInfo,
+    earnedBadgeIds,
+    levelUpInfo,
+    addXp,
+    incrementCompleted,
+    checkBadges,
+    dismissLevelUp,
+    updateName,
+    resetCharacter,
+  } = useCharacter()
+
+  // 뱃지 체크
+  useEffect(() => {
+    checkBadges(character, level)
+  }, [character.totalCompleted, level])
+
+  const handleComplete = useCallback((id) => {
+    const quest = completeQuest(id)
+    if (quest) {
+      addXp(quest.difficulty)
+      incrementCompleted()
+    }
+  }, [completeQuest, addXp, incrementCompleted])
+
+  const handleNameChange = useCallback((newName) => {
+    updateName(newName)
+  }, [updateName])
+
+  const handleReset = useCallback(() => {
+    resetAllData()
+    resetCharacter()
+  }, [resetAllData, resetCharacter])
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100dvh',
+        maxWidth: '390px',
+        margin: '0 auto',
+        background: '#1e1a2e',
+        position: 'relative',
+      }}
+    >
+      {/* 메인 컨텐츠 */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <AnimatePresence mode="wait">
+          {tab === 'home' && (
+            <motion.div key="home" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }} {...screenVariants}>
+              <HomeScreen
+                quests={quests}
+                categories={categories}
+                level={level}
+                xpInfo={xpInfo}
+                onComplete={handleComplete}
+                onAdd={addQuest}
+                onDelete={deleteQuest}
+                onSettings={() => setShowSettings(true)}
+              />
+            </motion.div>
+          )}
+          {tab === 'categories' && (
+            <motion.div key="categories" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }} {...screenVariants}>
+              <CategoriesScreen
+                categories={categories}
+                quests={quests}
+                onAddCategory={addCategory}
+              />
+            </motion.div>
+          )}
+          {tab === 'character' && (
+            <motion.div key="character" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }} {...screenVariants}>
+              <CharacterScreen
+                character={character}
+                level={level}
+                xpInfo={xpInfo}
+                earnedBadgeIds={earnedBadgeIds}
+                quests={quests}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* 탭바 */}
+      <TabBar current={tab} onChange={setTab} />
+
+      {/* PWA 홈화면 추가 배너 */}
+      <InstallBanner />
+
+      {/* 레벨업 모달 */}
+      <AnimatePresence>
+        {levelUpInfo && (
+          <LevelUpModal
+            key="levelup"
+            newLevel={levelUpInfo.newLevel}
+            onDismiss={dismissLevelUp}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* 설정 시트 */}
+      <AnimatePresence>
+        {showSettings && (
+          <SettingsSheet
+            key="settings"
+            character={character}
+            onClose={() => setShowSettings(false)}
+            onNameChange={handleNameChange}
+            onReset={handleReset}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
