@@ -20,6 +20,7 @@ export function useQuests() {
   const [categories, setCategories] = useState(() => {
     return loadCategories() ?? [...DEFAULT_CATEGORIES]
   })
+  const categoriesRef = useRef(categories)
 
   // 자정 기준 repeat별 퀘스트 리셋
   useEffect(() => {
@@ -27,18 +28,16 @@ export function useQuests() {
     const today = todayKey()
 
     if (lastReset !== today) {
-      setQuests((prev) => {
-        const reset = prev.map((q) => {
-          // repeat 설정에 따라 오늘 리셋 여부 결정
-          if (shouldResetToday(q.repeat ?? 'daily', lastReset)) {
-            return { ...q, completedToday: false }
-          }
-          return q
-        })
-        saveQuests(reset)
-        questsRef.current = reset
-        return reset
+      const reset = questsRef.current.map((q) => {
+        // repeat 설정에 따라 오늘 리셋 여부 결정
+        if (shouldResetToday(q.repeat ?? 'daily', lastReset)) {
+          return { ...q, completedToday: false }
+        }
+        return q
       })
+      questsRef.current = reset
+      setQuests(reset)
+      saveQuests(reset)
       saveLastReset(today)
     }
   }, [])
@@ -57,14 +56,12 @@ export function useQuests() {
     const target = questsRef.current.find((q) => q.id === id && !q.completedToday)
     if (!target) return null
 
-    setQuests((prev) => {
-      const updated = prev.map((q) =>
-        q.id === id && !q.completedToday ? { ...q, completedToday: true } : q
-      )
-      saveQuests(updated)
-      questsRef.current = updated
-      return updated
-    })
+    const updated = questsRef.current.map((q) =>
+      q.id === id && !q.completedToday ? { ...q, completedToday: true } : q
+    )
+    questsRef.current = updated
+    setQuests(updated)
+    saveQuests(updated)
     // 실제로 완료 처리될 퀘스트가 확인된 후에만 히스토리 기록
     recordHistory(id)
     return target
@@ -80,51 +77,45 @@ export function useQuests() {
       completedToday: false,
       createdAt: Date.now(),
     }
-    setQuests((prev) => {
-      const updated = [...prev, newQuest]
-      saveQuests(updated)
-      questsRef.current = updated
-      return updated
-    })
+    const updated = [...questsRef.current, newQuest]
+    questsRef.current = updated
+    setQuests(updated)
+    saveQuests(updated)
   }, [])
 
   const deleteQuest = useCallback((id) => {
-    setQuests((prev) => {
-      const updated = prev.filter((q) => q.id !== id)
-      saveQuests(updated)
-      questsRef.current = updated
-      return updated
-    })
+    const updated = questsRef.current.filter((q) => q.id !== id)
+    questsRef.current = updated
+    setQuests(updated)
+    saveQuests(updated)
   }, [])
 
   const addCategory = useCallback((data) => {
     const newCat = { id: nanoid(), ...data }
-    setCategories((prev) => {
-      const updated = [...prev, newCat]
-      saveCategories(updated)
-      return updated
-    })
+    const updated = [...categoriesRef.current, newCat]
+    categoriesRef.current = updated
+    setCategories(updated)
+    saveCategories(updated)
   }, [])
 
   const deleteCategory = useCallback((catId) => {
-    setCategories((prev) => {
-      const updated = prev.filter((c) => c.id !== catId)
-      saveCategories(updated)
-      return updated
-    })
+    const updatedCategories = categoriesRef.current.filter((c) => c.id !== catId)
+    categoriesRef.current = updatedCategories
+    setCategories(updatedCategories)
+    saveCategories(updatedCategories)
+
     // 해당 카테고리 퀘스트는 유지하되 categoryId를 null로
-    setQuests((prev) => {
-      const updated = prev.map((q) => q.categoryId === catId ? { ...q, categoryId: null } : q)
-      saveQuests(updated)
-      questsRef.current = updated
-      return updated
-    })
+    const updatedQuests = questsRef.current.map((q) => q.categoryId === catId ? { ...q, categoryId: null } : q)
+    questsRef.current = updatedQuests
+    setQuests(updatedQuests)
+    saveQuests(updatedQuests)
   }, [])
 
   const resetAllData = useCallback(() => {
     const fresh = [...DEFAULT_QUESTS.map(q => ({ ...q, id: nanoid() }))]
     const freshCats = [...DEFAULT_CATEGORIES]
     questsRef.current = fresh
+    categoriesRef.current = freshCats
     setQuests(fresh)
     setCategories(freshCats)
     saveQuests(fresh)

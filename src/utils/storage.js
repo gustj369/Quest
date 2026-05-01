@@ -1,9 +1,12 @@
 const KEYS = {
+  // Quest data
   QUESTS: 'quest_quests',
   CATEGORIES: 'quest_categories',
+  // Character progression
   CHARACTER: 'quest_character',
-  LAST_RESET: 'quest_last_reset',
   BADGES: 'quest_badges',
+  // Daily reset and completion history
+  LAST_RESET: 'quest_last_reset',
   HISTORY: 'quest_history',
 }
 

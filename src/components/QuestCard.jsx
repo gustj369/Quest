@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Trash2 } from 'lucide-react'
 import PixelMonster from './PixelMonster.jsx'
 import { XP_TABLE } from '../utils/xp.js'
@@ -21,27 +21,32 @@ export default function QuestCard({ quest, category, onComplete, onDelete, index
   // 예약된 타이머 ID를 추적하여 언마운트 시 일괄 정리
   const timeoutsRef = useRef([])
 
+  const clearTimers = useCallback(() => {
+    timeoutsRef.current.forEach(clearTimeout)
+    timeoutsRef.current = []
+  }, [])
+
   // 부모가 completedToday를 true로 업데이트하면 애니메이션 상태 리셋
   useEffect(() => {
     if (quest.completedToday) {
+      clearTimers()
       setSliding(false)
       setAnimating(false)
       setMonsterHit(false)
     }
-  }, [quest.completedToday])
+  }, [quest.completedToday, clearTimers])
 
   // 언마운트 시 남은 타이머 전부 취소
   useEffect(() => {
-    return () => {
-      timeoutsRef.current.forEach(clearTimeout)
-    }
-  }, [])
+    return clearTimers
+  }, [clearTimers])
 
   const handleComplete = () => {
     if (quest.completedToday || animating) return
 
     setAnimating(true)
     setMonsterHit(true)
+    clearTimers()
 
     timeoutsRef.current = [
       setTimeout(() => setMonsterHit(false), TIMING.MONSTER_HIT_DURATION),
