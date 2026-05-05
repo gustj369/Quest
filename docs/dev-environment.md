@@ -6,6 +6,8 @@
 
 현재 Codex 세션에서는 `node_modules/@esbuild/win32-x64/esbuild.exe`를 직접 실행하면 동작하지만, Node의 `child_process.spawn`으로 실행하면 `EPERM`이 발생합니다. Vite는 build/dev 시작 중 esbuild를 child process로 실행하므로 `npm run build`와 `npm run dev`가 같은 지점에서 실패합니다.
 
+추가 확인 결과, 이 Codex 세션에서는 Node가 `cmd.exe`, `powershell.exe`, `node.exe` 같은 일반 하위 프로세스도 `child_process.spawn`으로 실행하지 못합니다. 따라서 `spawn EPERM`은 현재 앱 코드나 Vite 설정 변경으로 해결할 문제가 아니라, Codex 실행 계정/Windows 보안 정책/하위 프로세스 실행 차단 문제로 분류합니다.
+
 사용자 PowerShell에서 확인:
 
 ```powershell
@@ -15,6 +17,15 @@ node -e "const {spawnSync}=require('child_process'); const r=spawnSync('node_mod
 npm.cmd run build
 npm.cmd run dev
 ```
+
+결과 해석:
+
+| 결과 | 의미 | 다음 행동 |
+|------|------|-----------|
+| 직접 실행과 `node -e`가 모두 성공 | Node 하위 프로세스 실행은 정상 | `npm.cmd run build` 실패 로그를 별도로 확인 |
+| 직접 실행은 성공, `node -e`만 `EPERM` | Node가 하위 프로세스를 띄우지 못함 | 보안 정책/백신/Defender 차단 로그 확인 |
+| 직접 실행부터 실패 | esbuild 실행 파일 자체가 차단되거나 손상됨 | 보안 예외, `npm.cmd install`, Node 재설치 확인 |
+| 사용자 PowerShell은 성공, Codex만 실패 | Codex 세션 권한 문제 | 빌드/커밋은 사용자 PowerShell 기준으로 진행 |
 
 직접 PowerShell에서도 `spawn EPERM`이 나면 보안 프로그램, Windows Defender 제어된 폴더 액세스, Node/esbuild 실행 권한, 또는 `node_modules` 재설치를 확인합니다. Codex 세션에서는 `npm.cmd rebuild esbuild`도 npm lifecycle script spawn 단계에서 `EPERM`으로 실패했습니다.
 
@@ -87,6 +98,14 @@ Get-WinEvent -LogName "Microsoft-Windows-Windows Defender/Operational" -MaxEvent
   Select-Object TimeCreated, Id, ProviderName, Message
 ```
 
+Defender 기록에 항목이 없는데도 `spawn EPERM`이 계속되면 Windows의 앱 실행 제어 정책도 확인합니다.
+
+1. `Windows 보안`을 엽니다.
+2. `앱 및 브라우저 컨트롤`로 이동합니다.
+3. `평판 기반 보호 설정`과 `악용 방지 설정`에서 `node.exe`, `esbuild.exe`, `rg.exe`가 차단된 기록이나 예외 설정이 있는지 확인합니다.
+4. 회사/학교 계정 또는 별도 백신을 사용 중이면 Windows Defender가 아니라 해당 보안 제품의 차단 로그를 먼저 확인합니다.
+5. 직접 실행은 되지만 Node의 `child_process.spawn`에서만 실패하면 `node.exe`가 하위 프로세스를 실행하지 못하는 정책 차단일 가능성이 큽니다.
+
 ## Git global ignore warning
 
 `git status`에서 `C:\Users\gustj\.config\git\ignore` 접근 권한 경고가 나면, 접근 가능한 전역 ignore 파일을 지정합니다.
@@ -95,6 +114,12 @@ Get-WinEvent -LogName "Microsoft-Windows-Windows Defender/Operational" -MaxEvent
 New-Item -ItemType File -Force "$env:USERPROFILE\.gitignore_global"
 git config --global core.excludesfile "$env:USERPROFILE\.gitignore_global"
 git status
+```
+
+Codex 세션에서는 사용자 홈의 `.gitconfig` 잠금 파일을 만들 수 없어 아래 오류가 날 수 있습니다. 이 경우 사용자 PowerShell에서 위 명령을 직접 실행합니다.
+
+```text
+error: could not lock config file C:/Users/gustj/.gitconfig: Permission denied
 ```
 
 ## Codex session cannot write `.git/config`
@@ -135,6 +160,27 @@ git push
 3. 레벨업이 발생할 만큼 퀘스트를 완료하거나 localStorage의 XP를 조정해 레벨업 모달이 정상 표시/닫힘 되는지 확인합니다.
 4. 완료 직후 탭 전환, 설정 열기, 데이터 초기화를 해도 콘솔 경고가 없는지 확인합니다.
 5. DevTools Application 탭에서 manifest 아이콘이 `pwa-192x192.png`, `pwa-512x512.png`로 표시되는지 확인합니다.
+
+### Mobile bottom sheet animation check
+
+실제 모바일 브라우저에서 바텀시트 닫힘 애니메이션을 확인할 때는 아래 기준으로 봅니다.
+
+1. 홈 `+` 버튼을 눌러 새 퀘스트 시트를 엽니다.
+2. X 버튼으로 닫고, 다시 열어서 오버레이 바깥 영역 터치로 닫습니다.
+3. 카테고리 탭에서 `카테고리 추가` 시트도 같은 방식으로 닫습니다.
+4. 닫힘 중 배경이 먼저 사라지거나 시트가 끊겨 보이지 않는지 확인합니다.
+5. 닫힌 뒤 화면 스크롤, 탭 전환, FAB 터치가 바로 가능한지 확인합니다.
+
+튜닝 기준:
+
+| 증상 | 조정 후보 |
+|------|-----------|
+| 닫힘이 너무 튀거나 되돌아오는 느낌 | `BottomSheet.jsx`의 `damping`을 34~38로 올림 |
+| 닫힘이 너무 느리고 무겁게 느껴짐 | `stiffness`를 320~360으로 올림 |
+| 닫힘이 너무 빠르고 거칠게 느껴짐 | `stiffness`를 260~280으로 낮춤 |
+| 배경 페이드와 시트 이동이 따로 노는 느낌 | overlay와 sheet exit 시간을 분리하는 작은 variants 추가 |
+
+현재 기본값은 `damping: 30`, `stiffness: 300`입니다. 실제 모바일에서 어색함이 확인되기 전까지는 이 값을 유지합니다.
 
 빠른 레벨업 확인용으로 브라우저 DevTools Console에서 아래 값을 넣은 뒤 새로고침할 수 있습니다.
 
