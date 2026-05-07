@@ -21,6 +21,7 @@ git status --short docs
 
 - `docs/product-decisions.md`
 - `docs/supabase-push-design.md`
+- `docs/testing-strategy.md`
 
 모바일 브라우저에서 아래를 확인합니다.
 

@@ -37,8 +37,17 @@ export function shouldResetToday(repeat, lastResetDate = null) {
       return dow >= 1 && dow <= 5  // 월~금
     case 'weekend':
       return dow === 0 || dow === 6 // 일, 토
-    case 'weekly':
-      return dow === 1             // 매주 월요일
+    case 'weekly': {
+      // "오늘이 월요일인지"가 아닌 "마지막 리셋 이후 이번 주 월요일이 지났는지"로 판단
+      // → 월요일에 앱을 열지 않아도 화~일 접속 시 올바르게 리셋됨
+      const todayDate = new Date(today + 'T00:00:00')
+      const daysToLastMonday = dow === 0 ? 6 : dow - 1  // 일요일=6일 전, 나머지=dow-1일 전
+      const thisMonday = new Date(todayDate)
+      thisMonday.setDate(todayDate.getDate() - daysToLastMonday)
+      const thisMondayKey = formatDateKey(thisMonday)
+      // lastReset이 없거나 이번 주 월요일 이전이면 리셋 필요
+      return !lastResetDate || lastResetDate < thisMondayKey
+    }
     default:
       return true
   }

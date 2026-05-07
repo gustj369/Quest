@@ -1,38 +1,58 @@
-import { useRef, useLayoutEffect } from 'react'
+import { useCallback, useRef, useLayoutEffect } from 'react'
 
 export default function XPBar({ xpInfo, level }) {
   const fillRef = useRef(null)
+  const timeoutRef = useRef(null)
+  const frameRefs = useRef([])
   // 이전 percent 값 추적 (애니메이션 방향 결정)
   const prevPercent = useRef(xpInfo.percent)
+  // 이전 레벨 추적 — from > 90 휴리스틱 대신 레벨 변화로 레벨업 정확 감지
+  const prevLevelRef = useRef(level)
+
+  const clearAnimationCallbacks = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+    frameRefs.current.forEach(cancelAnimationFrame)
+    frameRefs.current = []
+  }, [])
 
   // useLayoutEffect: 페인트 전에 실행 → 0% 깜박임 없음
   useLayoutEffect(() => {
     const el = fillRef.current
     if (!el) return
 
+    clearAnimationCallbacks()
+
     const from = prevPercent.current
     const to = xpInfo.percent
+    const leveledUp = level > prevLevelRef.current
 
-    if (from === to) {
+    // percent도 동일하고 레벨업도 없으면 아무것도 안 함
+    if (from === to && !leveledUp) {
       el.style.transition = 'none'
       el.style.width = `${to}%`
+      prevLevelRef.current = level
       return
     }
 
-    // 레벨업으로 인한 오버플로우 처리 (100% → 다음 레벨 시작값)
-    if (to < from && from > 90) {
-      // 레벨업: 100%까지 채운 다음 0에서 다시 시작
+    if (leveledUp) {
+      // 레벨업: 현재 바를 100%까지 채운 뒤 0에서 새 percent까지 재시작
       el.style.transition = 'width 0.4s ease'
       el.style.width = '100%'
-      setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         el.style.transition = 'none'
         el.style.width = '0%'
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
+        const firstFrame = requestAnimationFrame(() => {
+          const secondFrame = requestAnimationFrame(() => {
             el.style.transition = 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
             el.style.width = `${to}%`
           })
+          frameRefs.current = [secondFrame]
         })
+        frameRefs.current = [firstFrame]
+        timeoutRef.current = null
       }, 420)
     } else {
       el.style.transition = 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
@@ -40,7 +60,9 @@ export default function XPBar({ xpInfo, level }) {
     }
 
     prevPercent.current = to
-  }, [xpInfo.percent])
+    prevLevelRef.current = level
+    return clearAnimationCallbacks
+  }, [xpInfo.percent, level, clearAnimationCallbacks])
 
   return (
     <div className="px-5 pb-4">

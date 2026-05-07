@@ -1,13 +1,15 @@
 import { useState, useMemo } from 'react'
-import { Plus, X } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Plus, X, Trash2 } from 'lucide-react'
+import { AnimatePresence } from 'framer-motion'
+import BottomSheet from '../components/BottomSheet.jsx'
 import PixelMonster from '../components/PixelMonster.jsx'
 
 const EMOJI_OPTIONS = ['⚡','🌿','🎯','💡','🎨','🏃','🍎','🧪','📝','🎵','🌙','🔥','❄️','🌊','🦋']
 const COLOR_OPTIONS = ['#7fdbca','#a78bfa','#f5c542','#ff9f7f','#6bdfff','#6bff9c','#ff6b6b','#ffb6c1']
 
-export default function CategoriesScreen({ categories, quests, onAddCategory }) {
+export default function CategoriesScreen({ categories, quests, onAddCategory, onDeleteCategory }) {
   const [showAdd, setShowAdd] = useState(false)
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
   const [newName, setNewName] = useState('')
   const [newEmoji, setNewEmoji] = useState('⚡')
   const [newColor, setNewColor] = useState('#7fdbca')
@@ -100,7 +102,7 @@ export default function CategoriesScreen({ categories, quests, onAddCategory }) 
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <span style={{ fontFamily: '"Noto Sans KR", sans-serif', fontSize: '15px', fontWeight: 700, color: '#f0ece8' }}>
+                    <span style={{ fontFamily: '"Noto Sans KR", sans-serif', fontSize: '15px', fontWeight: 700, color: '#f0ece8', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {cat.name}
                     </span>
                     <span
@@ -136,7 +138,63 @@ export default function CategoriesScreen({ categories, quests, onAddCategory }) 
                   )}
                 </div>
 
-                <PixelMonster categoryId={cat.id} size={28} />
+                <div
+                  style={{
+                    width: confirmDeleteId === cat.id ? '116px' : '76px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: confirmDeleteId === cat.id ? 'flex-end' : 'space-between',
+                    flexShrink: 0,
+                  }}
+                >
+                  {confirmDeleteId === cat.id ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', width: '100%' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <button
+                          onClick={() => { onDeleteCategory?.(cat.id); setConfirmDeleteId(null) }}
+                          style={{
+                            fontSize: '10px', fontFamily: '"Press Start 2P", cursive',
+                            color: '#ff6b6b', background: '#ff6b6b1a',
+                            border: '1px solid #ff6b6b44', borderRadius: '6px',
+                            padding: '6px 8px', cursor: 'pointer', minHeight: '36px',
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          삭제
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          style={{
+                            color: '#8a8499', background: 'transparent', border: 'none',
+                            cursor: 'pointer', padding: '6px', minHeight: '36px', minWidth: '36px',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                      <div style={{ maxWidth: '116px', fontSize: '10px', color: '#8a8499', lineHeight: 1.4, textAlign: 'right', fontFamily: '"Noto Sans KR", sans-serif' }}>
+                        연결된 퀘스트는 보존됩니다
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <PixelMonster categoryId={cat.id} size={28} />
+                      <button
+                        onClick={() => setConfirmDeleteId(cat.id)}
+                        style={{
+                          color: '#8a8499', background: 'transparent', border: 'none',
+                          cursor: 'pointer', padding: '6px', minHeight: '44px', minWidth: '44px',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                        aria-label="카테고리 삭제"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           )
@@ -146,35 +204,8 @@ export default function CategoriesScreen({ categories, quests, onAddCategory }) 
       {/* 카테고리 추가 모달 */}
       <AnimatePresence>
         {showAdd && (
-          <motion.div
-            className="bottom-sheet-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowAdd(false)}
-          >
-            <motion.div
-              className="bottom-sheet"
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex justify-center pt-3 pb-1">
-                <div style={{ width: '40px', height: '4px', borderRadius: '2px', background: '#3d3858' }} />
-              </div>
-
-              <div className="flex items-center justify-between px-5 py-3">
-                <span style={{ fontFamily: '"Press Start 2P", cursive', fontSize: '11px', color: '#f0ece8' }}>
-                  카테고리 추가
-                </span>
-                <button onClick={() => setShowAdd(false)} style={{ color: '#8a8499', padding: '8px', minHeight: '44px', minWidth: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="px-5 pb-8" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <BottomSheet title="카테고리 추가" onClose={() => setShowAdd(false)}>
+            <div className="px-5 pb-8" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <input
                   className="pixel-input"
                   placeholder="카테고리 이름 (최대 8자)"
@@ -249,9 +280,8 @@ export default function CategoriesScreen({ categories, quests, onAddCategory }) 
                 >
                   추가하기
                 </button>
-              </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </BottomSheet>
         )}
       </AnimatePresence>
     </div>

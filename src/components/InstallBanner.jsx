@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
+import { loadInstallDismissed, saveInstallDismissed } from '../utils/storage.js'
 
 export default function InstallBanner() {
   const [prompt, setPrompt] = useState(null)
@@ -7,7 +8,7 @@ export default function InstallBanner() {
 
   useEffect(() => {
     // 이미 설치됐거나 무시한 경우 표시 안함
-    const dismissed = localStorage.getItem('quest_install_dismissed')
+    const dismissed = loadInstallDismissed()
     if (dismissed || window.matchMedia('(display-mode: standalone)').matches) return
 
     const handler = (e) => {
@@ -21,16 +22,20 @@ export default function InstallBanner() {
 
   const handleInstall = async () => {
     if (!prompt) return
-    prompt.prompt()
-    const { outcome } = await prompt.userChoice
-    if (outcome === 'accepted') {
-      localStorage.setItem('quest_install_dismissed', 'true')
+    try {
+      prompt.prompt()
+      const { outcome } = await prompt.userChoice
+      if (outcome === 'accepted') {
+        saveInstallDismissed(true)
+      }
+    } catch {
+      // 설치 프롬프트 오류 무시 (사용자가 취소하거나 브라우저가 거부한 경우)
     }
     setVisible(false)
   }
 
   const handleDismiss = () => {
-    localStorage.setItem('quest_install_dismissed', 'true')
+    saveInstallDismissed(true)
     setVisible(false)
   }
 

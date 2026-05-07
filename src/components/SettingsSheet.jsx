@@ -1,13 +1,41 @@
-import { useState } from 'react'
-import { X, RotateCcw, User, Bell, BellOff } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
+import { RotateCcw, User, Bell, BellOff } from 'lucide-react'
+import BottomSheet from './BottomSheet.jsx'
+import {
+  loadNotificationEnabled,
+  saveNotificationEnabled,
+  loadNotificationTime,
+  saveNotificationTime,
+} from '../utils/storage.js'
 
 export default function SettingsSheet({ character, onClose, onNameChange, onReset }) {
   const [name, setName] = useState(character.name || '용사')
   const [confirmReset, setConfirmReset] = useState(false)
-  const [notifEnabled, setNotifEnabled] = useState(
-    () => localStorage.getItem('quest_notif_enabled') !== 'false'
-  )
+  const [notifEnabled, setNotifEnabled] = useState(() => {
+    // 브라우저 권한이 실제로 granted이고, 사용자가 끄지 않은 경우만 ON
+    if (typeof Notification === 'undefined') return false
+    return Notification.permission === 'granted' && loadNotificationEnabled()
+  })
+  const [notifTime, setNotifTime] = useState(() => loadNotificationTime())
+  const resetTimerRef = useRef(null)
+  const notificationStatus = typeof Notification === 'undefined'
+    ? '이 브라우저는 알림을 지원하지 않습니다'
+    : Notification.permission === 'granted'
+      ? `매일 ${notifTime}에 리마인더 예정`
+      : Notification.permission === 'denied'
+        ? '브라우저 설정에서 알림 권한을 허용해야 합니다'
+        : '알림을 켜면 권한을 요청합니다'
+
+  const clearResetTimer = () => {
+    if (resetTimerRef.current) {
+      clearTimeout(resetTimerRef.current)
+      resetTimerRef.current = null
+    }
+  }
+
+  useEffect(() => {
+    return clearResetTimer
+  }, [])
 
   const handleNameSave = () => {
     const trimmed = name.trim() || '용사'
@@ -18,12 +46,17 @@ export default function SettingsSheet({ character, onClose, onNameChange, onRese
 
   const handleReset = () => {
     if (confirmReset) {
+      clearResetTimer()
       onReset()
       onClose()
     } else {
       setConfirmReset(true)
       // 3초 후 확인 상태 리셋
-      setTimeout(() => setConfirmReset(false), 3000)
+      clearResetTimer()
+      resetTimerRef.current = setTimeout(() => {
+        setConfirmReset(false)
+        resetTimerRef.current = null
+      }, 3000)
     }
   }
 
@@ -37,50 +70,23 @@ export default function SettingsSheet({ character, onClose, onNameChange, onRese
       const perm = await Notification.requestPermission().catch(() => 'denied')
       if (perm === 'granted') {
         setNotifEnabled(true)
-        localStorage.setItem('quest_notif_enabled', 'true')
+        saveNotificationEnabled(true)
       }
     } else {
       setNotifEnabled(false)
-      localStorage.setItem('quest_notif_enabled', 'false')
+      saveNotificationEnabled(false)
     }
   }
 
+  const handleNotifTimeChange = (e) => {
+    const next = e.target.value || '09:00'
+    setNotifTime(next)
+    saveNotificationTime(next)
+  }
+
   return (
-    <AnimatePresence>
-      <motion.div
-        className="bottom-sheet-overlay"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-      >
-        <motion.div
-          className="bottom-sheet"
-          initial={{ y: '100%' }}
-          animate={{ y: 0 }}
-          exit={{ y: '100%' }}
-          transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* 핸들 */}
-          <div className="flex justify-center pt-3 pb-1">
-            <div style={{ width: '40px', height: '4px', borderRadius: '2px', background: '#3d3858' }} />
-          </div>
-
-          {/* 헤더 */}
-          <div className="flex items-center justify-between px-5 py-3">
-            <span style={{ fontFamily: '"Press Start 2P", cursive', fontSize: '11px', color: '#f0ece8' }}>
-              SETTINGS
-            </span>
-            <button
-              onClick={onClose}
-              style={{ color: '#8a8499', padding: '8px', minHeight: '44px', minWidth: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              <X size={20} />
-            </button>
-          </div>
-
-          <div className="px-5 pb-8" style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+    <BottomSheet title="SETTINGS" onClose={onClose}>
+      <div className="px-5 pb-8" style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
             {/* 캐릭터 이름 */}
             <div
               style={{
@@ -147,7 +153,7 @@ export default function SettingsSheet({ character, onClose, onNameChange, onRese
                       푸시 알림
                     </div>
                     <div style={{ fontSize: '11px', color: '#8a8499', fontFamily: '"Noto Sans KR"', marginTop: '2px' }}>
-                      퀘스트 리마인더
+                      {notificationStatus}
                     </div>
                   </div>
                 </div>
@@ -181,6 +187,21 @@ export default function SettingsSheet({ character, onClose, onNameChange, onRese
                     }}
                   />
                 </button>
+              </div>
+              <div style={{ marginTop: '14px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', color: '#8a8499', fontFamily: '"Noto Sans KR", sans-serif' }}>
+                  알림 시간
+                </label>
+                <input
+                  className="pixel-input"
+                  type="time"
+                  value={notifTime}
+                  onChange={handleNotifTimeChange}
+                  disabled={typeof Notification === 'undefined'}
+                />
+                <div style={{ marginTop: '6px', fontSize: '11px', color: '#8a8499', fontFamily: '"Noto Sans KR", sans-serif', lineHeight: 1.5 }}>
+                  현재는 시간 설정만 저장되며, 실제 푸시 발송은 다음 단계에서 연결됩니다.
+                </div>
               </div>
             </div>
 
@@ -226,9 +247,7 @@ export default function SettingsSheet({ character, onClose, onNameChange, onRese
                 {confirmReset ? '⚠️ 한 번 더 탭하면 초기화됩니다' : '초기화'}
               </button>
             </div>
-          </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+      </div>
+    </BottomSheet>
   )
 }

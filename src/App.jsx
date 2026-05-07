@@ -23,10 +23,13 @@ export default function App() {
   const {
     quests,
     categories,
+    history,
     completeQuest,
     addQuest,
+    updateQuest,
     deleteQuest,
     addCategory,
+    deleteCategory,
     resetAllData,
   } = useQuests()
 
@@ -36,8 +39,7 @@ export default function App() {
     xpInfo,
     earnedBadgeIds,
     levelUpInfo,
-    addXp,
-    incrementCompleted,
+    completeQuestEffect,
     checkBadges,
     dismissLevelUp,
     updateName,
@@ -47,19 +49,14 @@ export default function App() {
   // 뱃지 체크
   useEffect(() => {
     checkBadges(character, level)
-  }, [character.totalCompleted, level])
+  }, [character.totalCompleted, character.hardCompleted, level, checkBadges])
 
   const handleComplete = useCallback((id) => {
     const quest = completeQuest(id)
     if (quest) {
-      addXp(quest.difficulty)
-      incrementCompleted()
+      completeQuestEffect(quest.difficulty)
     }
-  }, [completeQuest, addXp, incrementCompleted])
-
-  const handleNameChange = useCallback((newName) => {
-    updateName(newName)
-  }, [updateName])
+  }, [completeQuest, completeQuestEffect])
 
   const handleReset = useCallback(() => {
     resetAllData()
@@ -90,6 +87,7 @@ export default function App() {
                 xpInfo={xpInfo}
                 onComplete={handleComplete}
                 onAdd={addQuest}
+                onUpdate={updateQuest}
                 onDelete={deleteQuest}
                 onSettings={() => setShowSettings(true)}
               />
@@ -101,6 +99,7 @@ export default function App() {
                 categories={categories}
                 quests={quests}
                 onAddCategory={addCategory}
+                onDeleteCategory={deleteCategory}
               />
             </motion.div>
           )}
@@ -112,6 +111,7 @@ export default function App() {
                 xpInfo={xpInfo}
                 earnedBadgeIds={earnedBadgeIds}
                 quests={quests}
+                history={history}
               />
             </motion.div>
           )}
@@ -142,7 +142,7 @@ export default function App() {
             key="settings"
             character={character}
             onClose={() => setShowSettings(false)}
-            onNameChange={handleNameChange}
+            onNameChange={updateName}
             onReset={handleReset}
           />
         )}

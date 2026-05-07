@@ -1,10 +1,15 @@
+import { useMemo } from 'react'
+
 export default function CategoryTabs({ categories, selected, onSelect, questCounts }) {
-  const allCount = Object.values(questCounts).reduce((a, b) => a + b, 0)
+  const allCount = useMemo(
+    () => Object.values(questCounts).reduce((a, b) => a + b, 0),
+    [questCounts]
+  )
 
   return (
     <div
-      className="flex gap-2 px-5 pb-4 overflow-x-auto"
-      style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
+      className="flex gap-2 pl-5 pb-4 overflow-x-auto"
+      style={{ paddingRight: '28px', msOverflowStyle: 'none', scrollbarWidth: 'none' }}
     >
       {/* 전체 탭 */}
       <button
@@ -54,6 +59,7 @@ export default function CategoryTabs({ categories, selected, onSelect, questCoun
           </span>
         </button>
       ))}
+      <div style={{ flex: '0 0 24px' }} aria-hidden="true" />
     </div>
   )
 }

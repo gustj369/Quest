@@ -1,12 +1,12 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { loadCharacter, saveCharacter, loadBadges, saveBadges } from '../utils/storage.js'
+import { loadCharacter, saveCharacter, loadBadges, saveBadges, normalizeCharacter } from '../utils/storage.js'
 import { DEFAULT_CHARACTER, ALL_BADGES } from '../utils/defaults.js'
 import { levelFromTotalXp, xpProgressInLevel, XP_TABLE } from '../utils/xp.js'
 
 export function useCharacter() {
   const [character, setCharacter] = useState(() => {
     const stored = loadCharacter()
-    return stored ? { ...DEFAULT_CHARACTER, ...stored } : { ...DEFAULT_CHARACTER }
+    return normalizeCharacter(stored, DEFAULT_CHARACTER) ?? { ...DEFAULT_CHARACTER }
   })
   const characterRef = useRef(character)
   const [earnedBadgeIds, setEarnedBadgeIds] = useState(() => loadBadges())
@@ -28,7 +28,8 @@ export function useCharacter() {
     return clearLevelUpTimer
   }, [clearLevelUpTimer])
 
-  const addXp = useCallback((difficulty) => {
+  // 퀘스트 완료 보상은 이 함수 하나로만 처리해 XP/완료 수 중복 반영을 방지
+  const completeQuestEffect = useCallback((difficulty) => {
     const gain = XP_TABLE[difficulty] ?? 10
     const prev = characterRef.current
     const oldLevel = levelFromTotalXp(prev.totalXp)
@@ -37,6 +38,7 @@ export function useCharacter() {
     const updated = {
       ...prev,
       totalXp: newTotalXp,
+      totalCompleted: (prev.totalCompleted || 0) + 1,
       hardCompleted: difficulty === 'hard'
         ? (prev.hardCompleted || 0) + 1
         : (prev.hardCompleted || 0),
@@ -52,14 +54,6 @@ export function useCharacter() {
       }, 50)
     }
   }, [clearLevelUpTimer])
-
-  const incrementCompleted = useCallback(() => {
-    const prev = characterRef.current
-    const updated = { ...prev, totalCompleted: (prev.totalCompleted || 0) + 1 }
-    characterRef.current = updated
-    setCharacter(updated)
-    saveCharacter(updated)
-  }, [])
 
   const updateName = useCallback((newName) => {
     const updated = { ...characterRef.current, name: newName }
@@ -106,8 +100,7 @@ export function useCharacter() {
     xpInfo,
     earnedBadgeIds,
     levelUpInfo,
-    addXp,
-    incrementCompleted,
+    completeQuestEffect,
     updateName,
     resetCharacter,
     checkBadges,

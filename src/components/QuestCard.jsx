@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 import PixelMonster from './PixelMonster.jsx'
 import { XP_TABLE } from '../utils/xp.js'
 
@@ -13,7 +13,7 @@ const TIMING = {
   COMPLETE_DELAY: 520,         // 슬라이드 시작 후 상태 업데이트까지 대기
 }
 
-export default function QuestCard({ quest, category, onComplete, onDelete, index = 0 }) {
+export default function QuestCard({ quest, category, onComplete, onEdit, onDelete, index = 0 }) {
   const [animating, setAnimating] = useState(false)
   const [sliding, setSliding] = useState(false)
   const [monsterHit, setMonsterHit] = useState(false)
@@ -162,32 +162,62 @@ export default function QuestCard({ quest, category, onComplete, onDelete, index
         </div>
       </div>
 
-      {/* 픽셀 몬스터 */}
-      <PixelMonster
-        categoryId={quest.categoryId}
-        size={32}
-        animate={monsterHit}
-      />
-
-      {/* 삭제 버튼 */}
-      <button
-        onClick={(e) => { e.stopPropagation(); onDelete(quest.id) }}
+      <div
         style={{
-          padding: '8px',
-          color: '#3d3858',
-          minHeight: '44px',
-          minWidth: '36px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'color 0.15s',
+          justifyContent: 'space-between',
+          flexShrink: 0,
+          width: '112px',
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = '#ff6b6b')}
-        onMouseLeave={(e) => (e.currentTarget.style.color = '#3d3858')}
-        aria-label="퀘스트 삭제"
       >
-        <Trash2 size={16} />
-      </button>
+        {/* 픽셀 몬스터 */}
+        <PixelMonster
+          categoryId={quest.categoryId}
+          size={32}
+          animate={monsterHit}
+        />
+
+        {/* 수정 버튼 */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onEdit?.(quest) }}
+          style={{
+            padding: '8px',
+            color: '#8a8499',
+            minHeight: '44px',
+            minWidth: '34px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'color 0.15s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = '#7fdbca')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = '#8a8499')}
+          aria-label="퀘스트 수정"
+        >
+          <Pencil size={15} />
+        </button>
+
+        {/* 삭제 버튼 */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(quest.id) }}
+          style={{
+            padding: '8px',
+            color: '#3d3858',
+            minHeight: '44px',
+            minWidth: '34px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'color 0.15s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = '#ff6b6b')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = '#3d3858')}
+          aria-label="퀘스트 삭제"
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
     </div>
   )
 }

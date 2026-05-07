@@ -16,15 +16,7 @@ export function totalXpForLevel(level) {
 }
 
 export function levelFromTotalXp(totalXp) {
-  let level = 1
-  let accumulated = 0
-  while (true) {
-    const needed = xpForLevel(level)
-    if (accumulated + needed > totalXp) break
-    accumulated += needed
-    level++
-  }
-  return level
+  return xpProgressInLevel(totalXp).level
 }
 
 export function xpProgressInLevel(totalXp) {

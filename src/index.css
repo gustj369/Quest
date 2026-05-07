@@ -184,18 +184,49 @@ html, body {
 }
 
 /* 뱃지 그리드 아이템 */
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
 .badge-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 12px 8px;
-  background: var(--bg-card);
+  min-height: 86px;
+  padding: 12px 6px;
+  background: #1e1a2e;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 8px;
+  text-align: center;
 }
 .badge-item.locked {
-  filter: grayscale(1) brightness(0.5);
+  background: rgba(30, 26, 46, 0.7);
+  border-color: rgba(61, 56, 88, 0.75);
+}
+.badge-item.locked > span:first-child {
+  filter: grayscale(1) brightness(0.6);
+}
+.badge-name {
+  color: var(--text-primary);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.badge-item.locked .badge-name {
+  color: #8a8499;
+}
+.badge-status {
+  color: var(--text-muted);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 9px;
+  line-height: 1.2;
+}
+.badge-status.earned {
+  color: var(--accent-primary);
+  font-weight: 700;
 }
 
 /* 픽셀 체크 아이콘 */
@@ -224,10 +255,182 @@ html, body {
   box-shadow: 0 0 0 2px rgba(127, 219, 202, 0.2);
 }
 
+/* 퀘스트 추가 */
+.quest-mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 4px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.quest-mode-tab {
+  min-height: 40px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  transition: color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.quest-mode-tab.active {
+  background: var(--accent-primary);
+  color: var(--bg-base);
+  box-shadow: 2px 2px 0 #000;
+}
+.template-filter-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.template-filter-chip {
+  min-height: 38px;
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  background: var(--bg-base);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+}
+.template-filter-chip.active {
+  color: var(--bg-base);
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+.quest-template-list {
+  display: grid;
+  gap: 10px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-bottom: 2px;
+}
+.quest-template-card {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  min-height: 72px;
+  padding: 13px 82px 13px 14px;
+  text-align: left;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+.quest-template-card:active {
+  transform: translate(1px, 1px);
+  background: #242039;
+}
+.quest-template-card.added {
+  opacity: 0.58;
+  cursor: default;
+}
+.quest-template-card.added:active {
+  transform: none;
+}
+.quest-template-title {
+  color: var(--text-primary);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.quest-template-meta {
+  color: var(--text-muted);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 11px;
+  line-height: 1.3;
+}
+.quest-template-difficulty {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 52px;
+  padding: 4px 7px;
+  border-radius: 5px;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 8px;
+  line-height: 1;
+  text-align: center;
+}
+.quest-template-difficulty.easy {
+  color: var(--accent-primary);
+  background: rgba(127, 219, 202, 0.12);
+  border: 1px solid rgba(127, 219, 202, 0.4);
+}
+.quest-template-difficulty.normal {
+  color: var(--accent-secondary);
+  background: rgba(245, 197, 66, 0.12);
+  border: 1px solid rgba(245, 197, 66, 0.4);
+}
+.quest-template-difficulty.hard {
+  color: var(--accent-danger);
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.4);
+}
+.quest-template-card.added .quest-template-difficulty {
+  color: var(--text-muted);
+  background: rgba(138, 132, 153, 0.12);
+  border: 1px solid rgba(138, 132, 153, 0.28);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+}
+.quest-empty-category {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 18px 8px;
+  text-align: center;
+}
+.quest-empty-icon {
+  font-size: 34px;
+  line-height: 1;
+}
+.quest-empty-title {
+  color: var(--text-primary);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+}
+.quest-empty-copy {
+  color: var(--text-muted);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+  max-width: 280px;
+}
+.quest-empty-button {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  border-radius: 8px;
+  border: 2px solid #000;
+  background: var(--accent-primary);
+  color: var(--bg-base);
+  box-shadow: 2px 2px 0 #000;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 /* 잔디 달력 */
+.grass-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, 1fr);
+  grid-auto-columns: 1fr;
+  gap: 4px;
+}
 .grass-cell {
-  width: 12px;
-  height: 12px;
+  width: 100%;
+  min-width: 0;
   border-radius: 2px;
   background: var(--border);
   transition: background 0.2s;
@@ -236,6 +439,98 @@ html, body {
 .grass-cell.level-2 { background: rgba(127,219,202,0.55); }
 .grass-cell.level-3 { background: rgba(127,219,202,0.8); }
 .grass-cell.level-4 { background: #7fdbca; }
+.grass-legend {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  justify-content: flex-end;
+  margin-top: 14px;
+  color: var(--text-muted);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 10px;
+}
+
+/* 캐릭터 화면 */
+.character-hero-card {
+  padding: 26px 20px 22px;
+  text-align: center;
+}
+.character-sprite-frame {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.character-level {
+  color: var(--accent-secondary);
+  font-family: 'Press Start 2P', cursive;
+  font-size: 22px;
+  line-height: 1.3;
+  margin-bottom: 4px;
+  text-shadow: 2px 2px 0 #000;
+}
+.character-rank {
+  color: var(--text-primary);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+}
+.character-next-xp {
+  color: var(--text-muted);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 12px;
+  margin: 4px 0 18px;
+}
+.character-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.character-stat-card {
+  background: #1e1a2e;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 11px 6px 10px;
+  text-align: center;
+}
+.character-stat-icon {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.character-stat-value {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14px;
+  line-height: 1;
+  margin-bottom: 7px;
+}
+.character-stat-label {
+  color: var(--text-muted);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 11px;
+  line-height: 1.2;
+}
+.character-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-primary);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+.section-pill {
+  color: var(--accent-primary);
+  background: rgba(127, 219, 202, 0.1);
+  border: 1px solid rgba(127, 219, 202, 0.25);
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
 
 /* 스태거 애니메이션 */
 .stagger-item {

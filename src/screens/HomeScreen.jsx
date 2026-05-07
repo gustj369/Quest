@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import XPBar from '../components/XPBar.jsx'
@@ -6,9 +7,23 @@ import CategoryTabs from '../components/CategoryTabs.jsx'
 import QuestCard from '../components/QuestCard.jsx'
 import AddQuestModal from '../components/AddQuestModal.jsx'
 
-export default function HomeScreen({ quests, categories, level, xpInfo, onComplete, onAdd, onDelete, onSettings }) {
+export default function HomeScreen({ quests, categories, level, xpInfo, onComplete, onAdd, onUpdate, onDelete, onSettings }) {
   const [selectedCat, setSelectedCat] = useState('all')
   const [showAddModal, setShowAddModal] = useState(false)
+  const [editingQuest, setEditingQuest] = useState(null)
+
+  // 선택된 카테고리가 삭제된 경우 'all'로 복귀
+  useEffect(() => {
+    if (selectedCat !== 'all' && !categories.some((c) => c.id === selectedCat)) {
+      setSelectedCat('all')
+    }
+  }, [categories, selectedCat])
+
+  // O(1) 카테고리 조회용 Map
+  const categoryById = useMemo(
+    () => Object.fromEntries(categories.map((c) => [c.id, c])),
+    [categories]
+  )
 
   // 카테고리별 퀘스트 수
   const questCounts = useMemo(() => {
@@ -45,7 +60,7 @@ export default function HomeScreen({ quests, categories, level, xpInfo, onComple
 
   return (
     <>
-      <div className="flex-1 overflow-y-auto" style={{ paddingBottom: '80px' }}>
+      <div className="flex-1 overflow-y-auto" style={{ paddingBottom: '112px' }}>
         <Header level={level} onSettings={onSettings} />
         <XPBar xpInfo={xpInfo} level={level} />
         <CategoryTabs
@@ -100,8 +115,9 @@ export default function HomeScreen({ quests, categories, level, xpInfo, onComple
               <QuestCard
                 key={quest.id}
                 quest={quest}
-                category={categories.find((c) => c.id === quest.categoryId)}
+                category={categoryById[quest.categoryId]}
                 onComplete={onComplete}
+                onEdit={setEditingQuest}
                 onDelete={onDelete}
                 index={i}
               />
@@ -115,6 +131,7 @@ export default function HomeScreen({ quests, categories, level, xpInfo, onComple
             style={{
               textAlign: 'center',
               padding: '16px',
+              marginBottom: '12px',
               fontSize: '12px',
               color: '#8a8499',
               fontFamily: '"Noto Sans KR", sans-serif',
@@ -160,13 +177,27 @@ export default function HomeScreen({ quests, categories, level, xpInfo, onComple
         <Plus size={24} color="#1e1a2e" strokeWidth={2.5} />
       </button>
 
-      {showAddModal && (
-        <AddQuestModal
-          categories={categories}
-          onAdd={onAdd}
-          onClose={() => setShowAddModal(false)}
-        />
-      )}
+      <AnimatePresence>
+        {showAddModal && (
+          <AddQuestModal
+            key="add-quest"
+            quests={quests}
+            categories={categories}
+            onAdd={onAdd}
+            onClose={() => setShowAddModal(false)}
+          />
+        )}
+        {editingQuest && (
+          <AddQuestModal
+            key="edit-quest"
+            quests={quests}
+            categories={categories}
+            questToEdit={editingQuest}
+            onUpdate={onUpdate}
+            onClose={() => setEditingQuest(null)}
+          />
+        )}
+      </AnimatePresence>
     </>
   )
 }
