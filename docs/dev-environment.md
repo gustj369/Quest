@@ -8,6 +8,12 @@
 
 추가 확인 결과, 이 Codex 세션에서는 Node가 `cmd.exe`, `powershell.exe`, `node.exe` 같은 일반 하위 프로세스도 `child_process.spawn`으로 실행하지 못합니다. 따라서 `spawn EPERM`은 현재 앱 코드나 Vite 설정 변경으로 해결할 문제가 아니라, Codex 실행 계정/Windows 보안 정책/하위 프로세스 실행 차단 문제로 분류합니다.
 
+빠른 판단 기준:
+
+- 사용자 PowerShell에서 `npm.cmd test`와 `npm.cmd run build`가 성공하면 배포 검증은 통과로 봅니다.
+- Codex 세션에서만 `spawn EPERM`이 나면 이 문서의 권한 문제로 분류하고 앱 코드를 수정하지 않습니다.
+- 사용자 PowerShell에서도 실패하면 보안 프로그램, Defender, Node/esbuild 설치 상태를 확인합니다.
+
 사용자 PowerShell에서 확인:
 
 ```powershell
@@ -125,6 +131,17 @@ error: could not lock config file C:/Users/gustj/.gitconfig: Permission denied
 ## Codex session cannot write `.git/config`
 
 Codex 샌드박스 계정에는 `.git/config`에 대한 deny ACL이 있어 이 세션에서 Git config 쓰기가 막힐 수 있습니다. 커밋과 push는 사용자 PowerShell에서 수행합니다.
+
+역할 분리:
+
+- Codex: 파일 수정, 테스트 실행, `git status`/`git diff` 확인
+- 사용자 PowerShell: `git add`, `git commit`, `git push`
+
+Codex에서 `git add`가 아래처럼 실패하면 정상적인 권한 이슈로 보고, 같은 명령을 사용자 PowerShell에서 실행합니다.
+
+```text
+fatal: Unable to create 'C:/Users/gustj/Quest/.git/index.lock': Permission denied
+```
 
 ```powershell
 git status
