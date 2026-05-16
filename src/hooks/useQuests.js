@@ -16,7 +16,7 @@ export function useQuests() {
     // 기본 퀘스트는 인덱스만큼 ms 차이를 두어 고유한 createdAt 보장
     return stored.length > 0
       ? stored
-      : DEFAULT_QUESTS.map((q, i) => ({ ...q, createdAt: Date.now() + i }))
+      : DEFAULT_QUESTS.map((q, i) => ({ ...q, id: nanoid(), completedToday: false, createdAt: Date.now() + i }))
   })
   // setQuests 외부에서 현재 상태를 동기적으로 읽기 위한 ref
   const questsRef = useRef(quests)

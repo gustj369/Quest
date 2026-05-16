@@ -3,15 +3,6 @@ import CharacterSprite from '../components/CharacterSprite.jsx'
 import { ALL_BADGES } from '../utils/defaults.js'
 import { formatDateKey } from '../utils/date.js'
 
-const BADGE_HINTS = {
-  first_quest: '1개 완료',
-  ten_quests: '10개 완료',
-  fifty_quests: '50개 완료',
-  hundred_quests: '100개 완료',
-  level_5: 'Lv.5',
-  level_10: 'Lv.10',
-  hard_quest: '어려움 1회',
-}
 
 function GrassCalendar({ history }) {
   const cells = useMemo(() => {
@@ -143,7 +134,7 @@ export default function CharacterScreen({ character, level, xpInfo, earnedBadgeI
                     {badge.name}
                   </span>
                   <span className={`badge-status ${earned ? 'earned' : ''}`}>
-                    {earned ? '획득' : BADGE_HINTS[badge.id]}
+                    {earned ? '획득' : badge.hint}
                   </span>
                 </div>
               )

@@ -17,13 +17,21 @@ export default function QuestCard({ quest, category, onComplete, onEdit, onDelet
   const [animating, setAnimating] = useState(false)
   const [sliding, setSliding] = useState(false)
   const [monsterHit, setMonsterHit] = useState(false)
-  const cardRef = useRef(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   // 예약된 타이머 ID를 추적하여 언마운트 시 일괄 정리
   const timeoutsRef = useRef([])
+  const deleteTimerRef = useRef(null)
 
   const clearTimers = useCallback(() => {
     timeoutsRef.current.forEach(clearTimeout)
     timeoutsRef.current = []
+  }, [])
+
+  const clearDeleteTimer = useCallback(() => {
+    if (deleteTimerRef.current) {
+      clearTimeout(deleteTimerRef.current)
+      deleteTimerRef.current = null
+    }
   }, [])
 
   // 부모가 completedToday를 true로 업데이트하면 애니메이션 상태 리셋
@@ -40,6 +48,25 @@ export default function QuestCard({ quest, category, onComplete, onEdit, onDelet
   useEffect(() => {
     return clearTimers
   }, [clearTimers])
+
+  useEffect(() => {
+    return clearDeleteTimer
+  }, [clearDeleteTimer])
+
+  const handleDeleteClick = (e) => {
+    e.stopPropagation()
+    if (confirmDelete) {
+      clearDeleteTimer()
+      onDelete(quest.id)
+    } else {
+      setConfirmDelete(true)
+      clearDeleteTimer()
+      deleteTimerRef.current = setTimeout(() => {
+        setConfirmDelete(false)
+        deleteTimerRef.current = null
+      }, 3000)
+    }
+  }
 
   const handleComplete = () => {
     if (quest.completedToday || animating) return
@@ -59,7 +86,6 @@ export default function QuestCard({ quest, category, onComplete, onEdit, onDelet
 
   return (
     <div
-      ref={cardRef}
       className={`quest-card ${quest.completedToday ? 'completed' : ''} ${sliding ? 'slide-out' : ''} stagger-item`}
       style={{
         marginBottom: sliding ? 0 : '12px',
@@ -198,22 +224,25 @@ export default function QuestCard({ quest, category, onComplete, onEdit, onDelet
           <Pencil size={15} />
         </button>
 
-        {/* 삭제 버튼 */}
+        {/* 삭제 버튼 — 첫 탭: 확인 상태로 전환 / 두 번째 탭: 실제 삭제 */}
         <button
-          onClick={(e) => { e.stopPropagation(); onDelete(quest.id) }}
+          onClick={handleDeleteClick}
           style={{
             padding: '8px',
-            color: '#3d3858',
+            color: confirmDelete ? '#ff6b6b' : '#3d3858',
+            background: confirmDelete ? '#ff6b6b22' : 'transparent',
+            border: confirmDelete ? '1px solid #ff6b6b44' : '1px solid transparent',
+            borderRadius: '6px',
             minHeight: '44px',
             minWidth: '34px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'color 0.15s',
+            transition: 'color 0.15s, background 0.15s, border-color 0.15s',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = '#ff6b6b')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = '#3d3858')}
-          aria-label="퀘스트 삭제"
+          onMouseEnter={(e) => { if (!confirmDelete) e.currentTarget.style.color = '#ff6b6b' }}
+          onMouseLeave={(e) => { if (!confirmDelete) e.currentTarget.style.color = '#3d3858' }}
+          aria-label={confirmDelete ? '삭제 확인' : '퀘스트 삭제'}
         >
           <Trash2 size={16} />
         </button>

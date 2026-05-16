@@ -25,13 +25,17 @@ export default function CategoriesScreen({ categories, quests, onAddCategory, on
     return stats
   }, [quests])
 
-  const handleAdd = () => {
-    if (!newName.trim()) return
-    onAddCategory({ name: newName.trim(), emoji: newEmoji, color: newColor })
+  const handleCloseAdd = () => {
     setNewName('')
     setNewEmoji('⚡')
     setNewColor('#7fdbca')
     setShowAdd(false)
+  }
+
+  const handleAdd = () => {
+    if (!newName.trim()) return
+    onAddCategory({ name: newName.trim(), emoji: newEmoji, color: newColor })
+    handleCloseAdd()
   }
 
   return (
@@ -204,7 +208,7 @@ export default function CategoriesScreen({ categories, quests, onAddCategory, on
       {/* 카테고리 추가 모달 */}
       <AnimatePresence>
         {showAdd && (
-          <BottomSheet title="카테고리 추가" onClose={() => setShowAdd(false)}>
+          <BottomSheet title="카테고리 추가" onClose={handleCloseAdd}>
             <div className="px-5 pb-8" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <input
                   className="pixel-input"

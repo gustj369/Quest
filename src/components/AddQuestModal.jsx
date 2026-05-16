@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import BottomSheet from './BottomSheet.jsx'
 import { QUEST_TEMPLATES } from '../utils/defaults.js'
+import { XP_TABLE } from '../utils/xp.js'
 
 const REPEAT_OPTIONS = [
   { value: 'daily',   label: '매일' },
@@ -144,7 +145,7 @@ export default function AddQuestModal({ quests = [], categories, questToEdit = n
                           {cat?.emoji} {cat?.name} · {REPEAT_OPTIONS.find((item) => item.value === template.repeat)?.label}
                         </span>
                         <span className={`quest-template-difficulty ${template.difficulty}`}>
-                          {exists ? '추가됨' : template.difficulty === 'easy' ? '+10xp' : template.difficulty === 'normal' ? '+25xp' : '+50xp'}
+                          {exists ? '추가됨' : `+${XP_TABLE[template.difficulty]}xp`}
                         </span>
                       </button>
                     )
@@ -211,9 +212,9 @@ export default function AddQuestModal({ quests = [], categories, questToEdit = n
                   </label>
                   <div className="flex gap-3">
                     {[
-                      { value: 'easy',   stars: 1, color: '#7fdbca', xp: '10xp' },
-                      { value: 'normal', stars: 2, color: '#f5c542', xp: '25xp' },
-                      { value: 'hard',   stars: 3, color: '#ff6b6b', xp: '50xp' },
+                      { value: 'easy',   stars: 1, color: '#7fdbca' },
+                      { value: 'normal', stars: 2, color: '#f5c542' },
+                      { value: 'hard',   stars: 3, color: '#ff6b6b' },
                     ].map((d) => (
                       <button
                         key={d.value}
@@ -238,7 +239,7 @@ export default function AddQuestModal({ quests = [], categories, questToEdit = n
                           {'★'.repeat(d.stars)}{'☆'.repeat(3 - d.stars)}
                         </span>
                         <span style={{ fontSize: '9px', fontFamily: '"Press Start 2P", cursive', color: d.color }}>
-                          {d.xp}
+                          +{XP_TABLE[d.value]}xp
                         </span>
                       </button>
                     ))}

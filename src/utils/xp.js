@@ -8,13 +8,6 @@ export function xpForLevel(level) {
   return level * 100
 }
 
-export function totalXpForLevel(level) {
-  // 레벨 1까지 필요한 누적 XP
-  let total = 0
-  for (let i = 1; i < level; i++) total += xpForLevel(i)
-  return total
-}
-
 export function levelFromTotalXp(totalXp) {
   return xpProgressInLevel(totalXp).level
 }

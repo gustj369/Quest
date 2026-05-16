@@ -16,6 +16,7 @@ export default function LevelUpModal({ newLevel, onDismiss }) {
         exit={{ scale: 0, opacity: 0 }}
         transition={{ type: 'spring', damping: 12, stiffness: 200 }}
         style={{
+          position: 'relative',
           background: '#2a2640',
           border: '3px solid #f5c542',
           boxShadow: '6px 6px 0px #000, 0 0 40px rgba(245,197,66,0.4)',

@@ -150,7 +150,7 @@ export default function HomeScreen({ quests, categories, level, xpInfo, onComple
         style={{
           position: 'fixed',
           bottom: '80px',
-          right: '24px',
+          right: 'max(24px, calc((100vw - 390px) / 2 + 24px))',
           width: '56px',
           height: '56px',
           background: '#7fdbca',
