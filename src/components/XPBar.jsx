@@ -84,7 +84,7 @@ export default function XPBar({ xpInfo, level }) {
       </div>
 
       <div className="mt-1 text-right" style={{ fontSize: '11px', color: '#8a8499', fontFamily: '"Noto Sans KR", sans-serif' }}>
-        Lv.{level + 1}까지 {xpInfo.needed - xpInfo.current} XP
+        Lv.{level + 1}까지 {xpInfo.remaining} XP
       </div>
     </div>
   )

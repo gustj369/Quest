@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react'
 import { Plus, X, Trash2 } from 'lucide-react'
 import { AnimatePresence } from 'framer-motion'
 import BottomSheet from '../components/BottomSheet.jsx'
@@ -13,6 +13,32 @@ export default function CategoriesScreen({ categories, quests, onAddCategory, on
   const [newName, setNewName] = useState('')
   const [newEmoji, setNewEmoji] = useState('⚡')
   const [newColor, setNewColor] = useState('#7fdbca')
+  const confirmTimerRef = useRef(null)
+
+  const clearConfirmTimer = useCallback(() => {
+    if (confirmTimerRef.current) {
+      clearTimeout(confirmTimerRef.current)
+      confirmTimerRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    return clearConfirmTimer
+  }, [clearConfirmTimer])
+
+  const handleStartDelete = useCallback((id) => {
+    clearConfirmTimer()
+    setConfirmDeleteId(id)
+    confirmTimerRef.current = setTimeout(() => {
+      setConfirmDeleteId(null)
+      confirmTimerRef.current = null
+    }, 3000)
+  }, [clearConfirmTimer])
+
+  const handleCancelDelete = useCallback(() => {
+    clearConfirmTimer()
+    setConfirmDeleteId(null)
+  }, [clearConfirmTimer])
 
   // 카테고리별 통계를 한 번에 계산 (O(n) 한 번)
   const catStats = useMemo(() => {
@@ -155,7 +181,7 @@ export default function CategoriesScreen({ categories, quests, onAddCategory, on
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', width: '100%' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <button
-                          onClick={() => { onDeleteCategory?.(cat.id); setConfirmDeleteId(null) }}
+                          onClick={() => { clearConfirmTimer(); onDeleteCategory?.(cat.id); setConfirmDeleteId(null) }}
                           style={{
                             fontSize: '10px', fontFamily: '"Press Start 2P", cursive',
                             color: '#ff6b6b', background: '#ff6b6b1a',
@@ -167,7 +193,7 @@ export default function CategoriesScreen({ categories, quests, onAddCategory, on
                           삭제
                         </button>
                         <button
-                          onClick={() => setConfirmDeleteId(null)}
+                          onClick={handleCancelDelete}
                           style={{
                             color: '#8a8499', background: 'transparent', border: 'none',
                             cursor: 'pointer', padding: '6px', minHeight: '36px', minWidth: '36px',
@@ -185,7 +211,7 @@ export default function CategoriesScreen({ categories, quests, onAddCategory, on
                     <>
                       <PixelMonster categoryId={cat.id} size={28} />
                       <button
-                        onClick={() => setConfirmDeleteId(cat.id)}
+                        onClick={() => handleStartDelete(cat.id)}
                         style={{
                           color: '#8a8499', background: 'transparent', border: 'none',
                           cursor: 'pointer', padding: '6px', minHeight: '44px', minWidth: '44px',

@@ -38,10 +38,10 @@ export function useCharacter() {
     const updated = {
       ...prev,
       totalXp: newTotalXp,
-      totalCompleted: (prev.totalCompleted || 0) + 1,
+      totalCompleted: prev.totalCompleted + 1,
       hardCompleted: difficulty === 'hard'
-        ? (prev.hardCompleted || 0) + 1
-        : (prev.hardCompleted || 0),
+        ? prev.hardCompleted + 1
+        : prev.hardCompleted,
     }
     characterRef.current = updated
     setCharacter(updated)

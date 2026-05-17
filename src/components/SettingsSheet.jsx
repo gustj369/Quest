@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { RotateCcw, User, Bell, BellOff } from 'lucide-react'
 import BottomSheet from './BottomSheet.jsx'
 import {
@@ -26,12 +26,12 @@ export default function SettingsSheet({ character, onClose, onNameChange, onRese
         ? '브라우저 설정에서 알림 권한을 허용해야 합니다'
         : '알림을 켜면 권한을 요청합니다'
 
-  const clearResetTimer = () => {
+  const clearResetTimer = useCallback(() => {
     if (resetTimerRef.current) {
       clearTimeout(resetTimerRef.current)
       resetTimerRef.current = null
     }
-  }
+  }, [])
 
   useEffect(() => {
     return clearResetTimer

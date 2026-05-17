@@ -56,7 +56,7 @@ function GrassCalendar({ history }) {
 
 export default function CharacterScreen({ character, level, xpInfo, earnedBadgeIds, quests, history }) {
   const todayCompleted = quests.filter((q) => q.completedToday).length
-  const nextLevelXp = xpInfo.needed - xpInfo.current
+  const nextLevelXp = xpInfo.remaining
 
   const rankTitle = level < 5 ? '견습 모험가'
     : level < 10 ? '숙련 전사'
