@@ -15,34 +15,40 @@ export const DEFAULT_CHARACTER = {
   spriteId: 'warrior',
 }
 
-export const DEFAULT_QUESTS = [
-  { title: '물 2L 마시기',    categoryId: 'health',  difficulty: 'easy',   repeat: 'daily' },
-  { title: '30분 운동하기',   categoryId: 'health',  difficulty: 'normal', repeat: 'daily' },
-  { title: '책 20페이지 읽기', categoryId: 'study',   difficulty: 'easy',   repeat: 'daily' },
-  { title: '명상 10분',       categoryId: 'mindset', difficulty: 'easy',   repeat: 'daily' },
-  { title: '새 언어 단어 10개', categoryId: 'study',  difficulty: 'normal', repeat: 'daily' },
-]
+// DEFAULT_QUESTS는 QUEST_TEMPLATES의 부분집합으로 정의 — 중복 제거
+const DEFAULT_QUEST_TITLES = new Set([
+  '물 2L 마시기',
+  '30분 운동하기',
+  '책 20페이지 읽기',
+  '명상 10분',
+  '새 언어 단어 10개',
+])
 
 export const QUEST_TEMPLATES = [
-  { title: '물 2L 마시기', categoryId: 'health', difficulty: 'easy', repeat: 'daily' },
-  { title: '아침 스트레칭 5분', categoryId: 'health', difficulty: 'easy', repeat: 'daily' },
-  { title: '20분 걷기', categoryId: 'health', difficulty: 'normal', repeat: 'daily' },
-  { title: '책 10페이지 읽기', categoryId: 'study', difficulty: 'easy', repeat: 'daily' },
-  { title: '강의 1개 듣기', categoryId: 'study', difficulty: 'normal', repeat: 'weekday' },
-  { title: '복습 노트 정리', categoryId: 'study', difficulty: 'normal', repeat: 'weekday' },
-  { title: '명상 10분', categoryId: 'mindset', difficulty: 'easy', repeat: 'daily' },
-  { title: '감사한 일 3개 쓰기', categoryId: 'mindset', difficulty: 'easy', repeat: 'daily' },
+  { title: '물 2L 마시기',           categoryId: 'health',  difficulty: 'easy',   repeat: 'daily' },
+  { title: '아침 스트레칭 5분',       categoryId: 'health',  difficulty: 'easy',   repeat: 'daily' },
+  { title: '20분 걷기',              categoryId: 'health',  difficulty: 'normal', repeat: 'daily' },
+  { title: '30분 운동하기',          categoryId: 'health',  difficulty: 'normal', repeat: 'daily' },
+  { title: '책 10페이지 읽기',        categoryId: 'study',   difficulty: 'easy',   repeat: 'daily' },
+  { title: '책 20페이지 읽기',        categoryId: 'study',   difficulty: 'easy',   repeat: 'daily' },
+  { title: '강의 1개 듣기',          categoryId: 'study',   difficulty: 'normal', repeat: 'weekday' },
+  { title: '복습 노트 정리',          categoryId: 'study',   difficulty: 'normal', repeat: 'weekday' },
+  { title: '새 언어 단어 10개',       categoryId: 'study',   difficulty: 'normal', repeat: 'daily' },
+  { title: '명상 10분',              categoryId: 'mindset', difficulty: 'easy',   repeat: 'daily' },
+  { title: '감사한 일 3개 쓰기',      categoryId: 'mindset', difficulty: 'easy',   repeat: 'daily' },
   { title: '잠들기 전 휴대폰 내려놓기', categoryId: 'mindset', difficulty: 'normal', repeat: 'daily' },
-  { title: '가족에게 안부 묻기', categoryId: 'social', difficulty: 'easy', repeat: 'weekly' },
-  { title: '친구에게 연락하기', categoryId: 'social', difficulty: 'easy', repeat: 'weekly' },
-  { title: '칭찬 한마디 하기', categoryId: 'social', difficulty: 'easy', repeat: 'daily' },
-  { title: '취미 20분 즐기기', categoryId: 'hobby', difficulty: 'easy', repeat: 'daily' },
-  { title: '작은 작품 하나 만들기', categoryId: 'hobby', difficulty: 'hard', repeat: 'weekend' },
-  { title: '새로운 것 하나 시도하기', categoryId: 'hobby', difficulty: 'normal', repeat: 'weekly' },
-  { title: '오늘 지출 기록하기', categoryId: 'finance', difficulty: 'easy', repeat: 'daily' },
-  { title: '구독 서비스 점검하기', categoryId: 'finance', difficulty: 'normal', repeat: 'weekly' },
-  { title: '저축 목표 확인하기', categoryId: 'finance', difficulty: 'easy', repeat: 'weekly' },
+  { title: '가족에게 안부 묻기',      categoryId: 'social',  difficulty: 'easy',   repeat: 'weekly' },
+  { title: '친구에게 연락하기',       categoryId: 'social',  difficulty: 'easy',   repeat: 'weekly' },
+  { title: '칭찬 한마디 하기',        categoryId: 'social',  difficulty: 'easy',   repeat: 'daily' },
+  { title: '취미 20분 즐기기',        categoryId: 'hobby',   difficulty: 'easy',   repeat: 'daily' },
+  { title: '작은 작품 하나 만들기',   categoryId: 'hobby',   difficulty: 'hard',   repeat: 'weekend' },
+  { title: '새로운 것 하나 시도하기', categoryId: 'hobby',   difficulty: 'normal', repeat: 'weekly' },
+  { title: '오늘 지출 기록하기',      categoryId: 'finance', difficulty: 'easy',   repeat: 'daily' },
+  { title: '구독 서비스 점검하기',    categoryId: 'finance', difficulty: 'normal', repeat: 'weekly' },
+  { title: '저축 목표 확인하기',      categoryId: 'finance', difficulty: 'easy',   repeat: 'weekly' },
 ]
+
+export const DEFAULT_QUESTS = QUEST_TEMPLATES.filter((t) => DEFAULT_QUEST_TITLES.has(t.title))
 
 export const ALL_BADGES = [
   { id: 'first_quest',    name: '첫 퀘스트',   emoji: '⚔️',  desc: '첫 퀘스트 완료',           hint: '1개 완료',    condition: (c) => c.totalCompleted >= 1 },

@@ -49,7 +49,7 @@ export default function App() {
   // 뱃지 체크
   useEffect(() => {
     checkBadges(character, level)
-  }, [character.totalCompleted, character.hardCompleted, level, checkBadges])
+  }, [character, level, checkBadges])
 
   const handleComplete = useCallback((id) => {
     const quest = completeQuest(id)

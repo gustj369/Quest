@@ -35,7 +35,7 @@ export default function SettingsSheet({ character, onClose, onNameChange, onRese
 
   useEffect(() => {
     return clearResetTimer
-  }, [])
+  }, [clearResetTimer])
 
   const handleNameSave = () => {
     const trimmed = name.trim() || '용사'

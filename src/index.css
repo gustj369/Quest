@@ -62,25 +62,6 @@ html, body {
   opacity: 0.5;
 }
 
-/* 픽셀 버튼 */
-.btn-pixel {
-  background: var(--accent-primary);
-  color: #1e1a2e;
-  border: 2px solid #000;
-  box-shadow: var(--pixel-shadow);
-  font-family: 'Press Start 2P', cursive;
-  font-size: 10px;
-  padding: 12px 20px;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: transform 0.1s, box-shadow 0.1s;
-  min-height: 44px;
-}
-.btn-pixel:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px #000;
-}
-
 /* 경험치 바 */
 .xp-bar-track {
   background: var(--border);
