@@ -136,6 +136,21 @@ export function saveHistory(history) {
   save(KEYS.HISTORY, history)
 }
 
+/**
+ * keepDays일 이전 기록을 제거한 새 history 객체를 반환.
+ * YYYY-MM-DD 문자열은 사전 순 비교로 날짜 대소 판단 가능.
+ */
+export function pruneHistory(history, keepDays = 90) {
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - keepDays)
+  const cutoffKey = `${cutoff.getFullYear()}-${String(cutoff.getMonth() + 1).padStart(2, '0')}-${String(cutoff.getDate()).padStart(2, '0')}`
+  const pruned = {}
+  Object.keys(history).forEach((key) => {
+    if (key >= cutoffKey) pruned[key] = history[key]
+  })
+  return pruned
+}
+
 export function loadNotificationEnabled() {
   return load(KEYS.NOTIF_ENABLED, true)
 }

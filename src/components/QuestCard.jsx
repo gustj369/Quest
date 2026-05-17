@@ -10,7 +10,7 @@ const DIFFICULTY_STARS = { easy: 1, normal: 2, hard: 3 }
 const TIMING = {
   MONSTER_HIT_DURATION: 280,   // 몬스터 타격 이펙트 길이
   SLIDE_DELAY: 240,            // 타격 후 슬라이드 시작까지 대기
-  COMPLETE_DELAY: 520,         // 슬라이드 시작 후 상태 업데이트까지 대기
+  COMPLETE_DELAY: 520,         // 타격 시작 후 완료 상태 업데이트까지 총 대기 (SLIDE_DELAY + 슬라이드 진행 280ms)
 }
 
 export default function QuestCard({ quest, category, onComplete, onEdit, onDelete, index = 0 }) {

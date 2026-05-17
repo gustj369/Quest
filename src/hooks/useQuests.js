@@ -4,6 +4,7 @@ import {
   loadCategories, saveCategories,
   loadLastReset, saveLastReset,
   loadHistory, saveHistory,
+  pruneHistory,
 } from '../utils/storage.js'
 
 import { DEFAULT_CATEGORIES, DEFAULT_QUESTS } from '../utils/defaults.js'
@@ -26,7 +27,13 @@ export function useQuests() {
   })
   const categoriesRef = useRef(categories)
 
-  const [history, setHistory] = useState(() => loadHistory())
+  const [history, setHistory] = useState(() => {
+    const raw = loadHistory()
+    const pruned = pruneHistory(raw)
+    // 정리된 항목이 있으면 바로 저장해 다음 실행 시에도 반영
+    if (Object.keys(pruned).length !== Object.keys(raw).length) saveHistory(pruned)
+    return pruned
+  })
   const historyRef = useRef(history)
 
   // 자정 기준 repeat별 퀘스트 리셋

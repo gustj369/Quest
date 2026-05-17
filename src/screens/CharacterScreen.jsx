@@ -7,10 +7,14 @@ import { formatDateKey } from '../utils/date.js'
 function GrassCalendar({ history }) {
   const cells = useMemo(() => {
     const today = new Date()
+    const dow = today.getDay() // 0=일, 6=토
+    // 이번 주 토요일을 끝으로 35칸(5주) 구성 → 항상 일요일 시작, 열이 완전한 1주 단위
+    const end = new Date(today)
+    end.setDate(today.getDate() + (6 - dow))
     const result = []
     for (let i = 34; i >= 0; i--) {
-      const d = new Date(today)
-      d.setDate(today.getDate() - i)
+      const d = new Date(end)
+      d.setDate(end.getDate() - i)
       const key = formatDateKey(d)
       const count = (history[key] ?? []).length
       let level = 0
@@ -24,7 +28,9 @@ function GrassCalendar({ history }) {
   }, [history])
 
   const weekTotal = useMemo(() => {
-    return cells.slice(-7).reduce((sum, c) => sum + c.count, 0)
+    // 이번 주 일요일(index 28)~오늘까지만 합산 — 미래 날짜 제외
+    const todayDow = new Date().getDay()
+    return cells.slice(28, 29 + todayDow).reduce((sum, c) => sum + c.count, 0)
   }, [cells])
 
   return (

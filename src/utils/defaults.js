@@ -57,5 +57,6 @@ export const ALL_BADGES = [
   { id: 'hundred_quests', name: '전설',         emoji: '👑',  desc: '누적 100개 완료',           hint: '100개 완료',  condition: (c) => c.totalCompleted >= 100 },
   { id: 'level_5',        name: '레벨 5',       emoji: '⭐',  desc: '레벨 5 달성',               hint: 'Lv.5',        condition: (c, lvl) => lvl >= 5 },
   { id: 'level_10',       name: '레벨 10',      emoji: '🌟',  desc: '레벨 10 달성',              hint: 'Lv.10',       condition: (c, lvl) => lvl >= 10 },
+  { id: 'level_20',       name: '레벨 20',      emoji: '💎',  desc: '레벨 20 달성',              hint: 'Lv.20',       condition: (c, lvl) => lvl >= 20 },
   { id: 'hard_quest',     name: '용감한 자',    emoji: '🔥',  desc: '어려움 퀘스트 첫 완료',    hint: '어려움 1회',  condition: (c) => c.hardCompleted >= 1 },
 ]

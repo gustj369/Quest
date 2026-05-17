@@ -45,7 +45,7 @@ export default function InstallBanner() {
     <div
       style={{
         position: 'fixed',
-        bottom: '80px',
+        bottom: '148px',
         left: '50%',
         transform: 'translateX(-50%)',
         width: 'calc(100% - 32px)',
