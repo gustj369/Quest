@@ -134,6 +134,11 @@ export function useQuests() {
     saveCategories(updated)
   }, [])
 
+  /**
+   * 카테고리를 삭제한다.
+   * 부작용: 해당 카테고리에 속한 퀘스트의 categoryId를 null로 변경해 고아 상태로 보존.
+   * 퀘스트 자체는 삭제하지 않으며, 수정 모달에서 새 카테고리를 재지정할 수 있다.
+   */
   const deleteCategory = useCallback((catId) => {
     const updatedCategories = categoriesRef.current.filter((c) => c.id !== catId)
     categoriesRef.current = updatedCategories

@@ -197,7 +197,7 @@ export default function SettingsSheet({ character, onClose, onNameChange, onRese
                   type="time"
                   value={notifTime}
                   onChange={handleNotifTimeChange}
-                  disabled={typeof Notification === 'undefined'}
+                  disabled={typeof Notification === 'undefined' || !notifEnabled}
                 />
                 <div style={{ marginTop: '6px', fontSize: '11px', color: '#8a8499', fontFamily: '"Noto Sans KR", sans-serif', lineHeight: 1.5 }}>
                   현재는 시간 설정만 저장되며, 실제 푸시 발송은 다음 단계에서 연결됩니다.

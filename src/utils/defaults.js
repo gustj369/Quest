@@ -12,7 +12,7 @@ export const DEFAULT_CHARACTER = {
   totalXp: 0,
   totalCompleted: 0,
   hardCompleted: 0,
-  spriteId: 'warrior',
+  spriteId: 'warrior', // TODO: 캐릭터 선택 기능 추가 시 CharacterSprite에서 참조 예정 (현재 미사용)
 }
 
 // DEFAULT_QUESTS는 QUEST_TEMPLATES의 부분집합으로 정의 — 중복 제거

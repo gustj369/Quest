@@ -61,6 +61,10 @@ html, body {
 .quest-card.completed {
   opacity: 0.5;
 }
+.quest-card.completed:active {
+  transform: none;
+  box-shadow: var(--pixel-shadow);
+}
 
 /* 경험치 바 */
 .xp-bar-track {

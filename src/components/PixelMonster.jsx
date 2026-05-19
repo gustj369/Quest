@@ -2,7 +2,7 @@
 const MONSTERS = {
   health: {
     label: '슬라임',
-    svg: (
+    svg: () => (
       <svg width="32" height="32" viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg" style={{imageRendering:'pixelated'}}>
         <rect x="2" y="3" width="4" height="3" fill="#7fdbca"/>
         <rect x="1" y="4" width="6" height="2" fill="#7fdbca"/>
@@ -19,7 +19,7 @@ const MONSTERS = {
   },
   study: {
     label: '부엉이',
-    svg: (
+    svg: () => (
       <svg width="32" height="32" viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg" style={{imageRendering:'pixelated'}}>
         <rect x="2" y="1" width="4" height="5" fill="#a78bfa"/>
         <rect x="1" y="2" width="6" height="3" fill="#a78bfa"/>
@@ -44,7 +44,7 @@ const MONSTERS = {
   },
   mindset: {
     label: '요정',
-    svg: (
+    svg: () => (
       <svg width="32" height="32" viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg" style={{imageRendering:'pixelated'}}>
         {/* 몸 */}
         <rect x="3" y="3" width="2" height="3" fill="#f5c542"/>
@@ -65,7 +65,7 @@ const MONSTERS = {
   },
   social: {
     label: '토끼',
-    svg: (
+    svg: () => (
       <svg width="32" height="32" viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg" style={{imageRendering:'pixelated'}}>
         {/* 귀 */}
         <rect x="2" y="0" width="1" height="3" fill="#ff9f7f"/>
@@ -89,7 +89,7 @@ const MONSTERS = {
   },
   hobby: {
     label: '드래곤',
-    svg: (
+    svg: () => (
       <svg width="32" height="32" viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg" style={{imageRendering:'pixelated'}}>
         {/* 뿔 */}
         <rect x="2" y="0" width="1" height="2" fill="#ff6b6b"/>
@@ -115,7 +115,7 @@ const MONSTERS = {
   },
   finance: {
     label: '금화',
-    svg: (
+    svg: () => (
       <svg width="32" height="32" viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg" style={{imageRendering:'pixelated'}}>
         {/* 동전 */}
         <rect x="2" y="1" width="4" height="6" fill="#f5c542"/>
@@ -136,7 +136,7 @@ const MONSTERS = {
   },
   default: {
     label: '고블린',
-    svg: (
+    svg: () => (
       <svg width="32" height="32" viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg" style={{imageRendering:'pixelated'}}>
         {/* 귀 */}
         <rect x="0" y="3" width="2" height="1" fill="#6bff9c"/>
@@ -169,7 +169,7 @@ export default function PixelMonster({ categoryId, size = 32, animate = false })
       title={monster.label}
     >
       <div style={{ transform: `scale(${size / 32})`, transformOrigin: 'top left' }}>
-        {monster.svg}
+        {monster.svg()}
       </div>
     </div>
   )

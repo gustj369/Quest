@@ -90,7 +90,7 @@ export function normalizeCharacter(value, defaults) {
     totalXp: Number.isFinite(value.totalXp) && value.totalXp >= 0 ? value.totalXp : defaults.totalXp,
     totalCompleted: Number.isFinite(value.totalCompleted) && value.totalCompleted >= 0 ? value.totalCompleted : defaults.totalCompleted,
     hardCompleted: Number.isFinite(value.hardCompleted) && value.hardCompleted >= 0 ? value.hardCompleted : defaults.hardCompleted,
-    spriteId: typeof value.spriteId === 'string' && value.spriteId.trim() ? value.spriteId : defaults.spriteId,
+    spriteId: typeof value.spriteId === 'string' && value.spriteId.trim() ? value.spriteId : defaults.spriteId, // TODO: 캐릭터 선택 기능 시 활용
   }
 }
 
