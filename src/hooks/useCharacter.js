@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { loadCharacter, saveCharacter, loadBadges, saveBadges, normalizeCharacter } from '../utils/storage.js'
 import { DEFAULT_CHARACTER, ALL_BADGES } from '../utils/defaults.js'
-import { levelFromTotalXp, xpProgressInLevel, XP_TABLE } from '../utils/xp.js'
+import { xpProgressInLevel, XP_TABLE } from '../utils/xp.js'
 
 export function useCharacter() {
   const [character, setCharacter] = useState(() => {
@@ -14,8 +14,8 @@ export function useCharacter() {
   const [levelUpInfo, setLevelUpInfo] = useState(null) // { newLevel }
   const levelUpTimerRef = useRef(null)
 
-  const level = levelFromTotalXp(character.totalXp)
   const xpInfo = xpProgressInLevel(character.totalXp)
+  const level = xpInfo.level
 
   const clearLevelUpTimer = useCallback(() => {
     if (levelUpTimerRef.current) {
@@ -32,9 +32,9 @@ export function useCharacter() {
   const completeQuestEffect = useCallback((difficulty) => {
     const gain = XP_TABLE[difficulty] ?? 10
     const prev = characterRef.current
-    const oldLevel = levelFromTotalXp(prev.totalXp)
+    const oldLevel = xpProgressInLevel(prev.totalXp).level
     const newTotalXp = prev.totalXp + gain
-    const newLevel = levelFromTotalXp(newTotalXp)
+    const newLevel = xpProgressInLevel(newTotalXp).level
     const updated = {
       ...prev,
       totalXp: newTotalXp,

@@ -1,3 +1,10 @@
+export const REPEAT_OPTIONS = [
+  { value: 'daily',   label: '매일' },
+  { value: 'weekday', label: '평일' },
+  { value: 'weekend', label: '주말' },
+  { value: 'weekly',  label: '매주' },
+]
+
 export const DEFAULT_CATEGORIES = [
   { id: 'health',    name: '건강',   emoji: '💪', color: '#7fdbca' },
   { id: 'study',     name: '학습',   emoji: '📚', color: '#a78bfa' },

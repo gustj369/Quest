@@ -1,14 +1,8 @@
 import { useMemo, useState } from 'react'
 import BottomSheet from './BottomSheet.jsx'
-import { QUEST_TEMPLATES } from '../utils/defaults.js'
+import { QUEST_TEMPLATES, REPEAT_OPTIONS } from '../utils/defaults.js'
 import { XP_TABLE } from '../utils/xp.js'
 
-const REPEAT_OPTIONS = [
-  { value: 'daily',   label: '매일' },
-  { value: 'weekday', label: '평일' },
-  { value: 'weekend', label: '주말' },
-  { value: 'weekly',  label: '매주' },
-]
 
 export default function AddQuestModal({ quests = [], categories, questToEdit = null, onAdd, onUpdate, onClose }) {
   const hasCategories = categories.length > 0

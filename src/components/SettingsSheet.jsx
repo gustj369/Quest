@@ -11,6 +11,8 @@ import {
 export default function SettingsSheet({ character, onClose, onNameChange, onReset }) {
   const [name, setName] = useState(character.name || '용사')
   const [confirmReset, setConfirmReset] = useState(false)
+  const [unsupportedMsg, setUnsupportedMsg] = useState(null)
+  const unsupportedTimerRef = useRef(null)
   const [notifEnabled, setNotifEnabled] = useState(() => {
     // 브라우저 권한이 실제로 granted이고, 사용자가 끄지 않은 경우만 ON
     if (typeof Notification === 'undefined') return false
@@ -36,6 +38,12 @@ export default function SettingsSheet({ character, onClose, onNameChange, onRese
   useEffect(() => {
     return clearResetTimer
   }, [clearResetTimer])
+
+  useEffect(() => {
+    return () => {
+      if (unsupportedTimerRef.current) clearTimeout(unsupportedTimerRef.current)
+    }
+  }, [])
 
   const handleNameSave = () => {
     const trimmed = name.trim() || '용사'
@@ -64,7 +72,12 @@ export default function SettingsSheet({ character, onClose, onNameChange, onRese
     if (!notifEnabled) {
       // Notification API가 없는 환경(iOS 구형, 일부 브라우저) 방어
       if (typeof Notification === 'undefined') {
-        alert('이 기기는 푸시 알림을 지원하지 않습니다.')
+        setUnsupportedMsg('이 기기는 푸시 알림을 지원하지 않습니다.')
+        if (unsupportedTimerRef.current) clearTimeout(unsupportedTimerRef.current)
+        unsupportedTimerRef.current = setTimeout(() => {
+          setUnsupportedMsg(null)
+          unsupportedTimerRef.current = null
+        }, 3000)
         return
       }
       const perm = await Notification.requestPermission().catch(() => 'denied')
@@ -188,6 +201,11 @@ export default function SettingsSheet({ character, onClose, onNameChange, onRese
                   />
                 </button>
               </div>
+              {unsupportedMsg && (
+                <div style={{ marginTop: '10px', fontSize: '11px', color: '#ff6b6b', fontFamily: '"Noto Sans KR", sans-serif', lineHeight: 1.5 }}>
+                  ⚠️ {unsupportedMsg}
+                </div>
+              )}
               <div style={{ marginTop: '14px' }}>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', color: '#8a8499', fontFamily: '"Noto Sans KR", sans-serif' }}>
                   알림 시간

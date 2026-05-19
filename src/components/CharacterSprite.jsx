@@ -1,8 +1,10 @@
 // 캐릭터 픽셀 스프라이트 — CSS로 구현
 export default function CharacterSprite({ size = 48, level = 1, animate = false }) {
   // 레벨에 따라 색상 변화
-  const bodyColor = level >= 10 ? '#f5c542' : level >= 5 ? '#a78bfa' : '#7fdbca'
-  const armorColor = level >= 10 ? '#d4a90e' : level >= 5 ? '#7c5fc4' : '#5ab8a4'
+  // 레벨 구간별 색상 — CharacterScreen rankTitle 4단계와 동기화
+  // 1~4: 민트(견습), 5~9: 보라(숙련), 10~19: 금(정예), 20+: 레드(전설)
+  const bodyColor  = level >= 20 ? '#ff6b6b' : level >= 10 ? '#f5c542' : level >= 5 ? '#a78bfa' : '#7fdbca'
+  const armorColor = level >= 20 ? '#cc3333' : level >= 10 ? '#d4a90e' : level >= 5 ? '#7c5fc4' : '#5ab8a4'
   const scale = size / 16
 
   return (

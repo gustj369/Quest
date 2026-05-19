@@ -22,6 +22,7 @@ export function load(key, fallback = null) {
     const raw = localStorage.getItem(key)
     return raw ? JSON.parse(raw) : fallback
   } catch {
+    // localStorage 접근 차단(SecurityError 등) 또는 JSON 파싱 실패 시 fallback 반환
     return fallback
   }
 }

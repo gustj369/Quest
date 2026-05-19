@@ -2,6 +2,9 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import PixelMonster from './PixelMonster.jsx'
 import { XP_TABLE } from '../utils/xp.js'
+import { REPEAT_OPTIONS } from '../utils/defaults.js'
+
+const REPEAT_LABEL = Object.fromEntries(REPEAT_OPTIONS.map((r) => [r.value, r.label]))
 
 const DIFFICULTY_COLOR = { easy: '#7fdbca', normal: '#f5c542', hard: '#ff6b6b' }
 const DIFFICULTY_STARS = { easy: 1, normal: 2, hard: 3 }
@@ -182,7 +185,7 @@ export default function QuestCard({ quest, category, onComplete, onEdit, onDelet
               borderRadius: '4px',
               padding: '2px 6px',
             }}>
-              {{ weekday:'평일', weekend:'주말', weekly:'매주' }[quest.repeat]}
+              {REPEAT_LABEL[quest.repeat]}
             </span>
           )}
         </div>
