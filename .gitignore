@@ -23,3 +23,9 @@ Thumbs.db
 
 # Local Claude Code permissions
 .claude/settings.local.json
+
+# Capacitor Android build outputs
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
