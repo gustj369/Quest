@@ -137,8 +137,9 @@ export default function CategoriesScreen({ categories, quests, onAddCategory, on
                     </span>
                     <span
                       style={{
-                        fontSize: '10px',
-                        fontFamily: '"Press Start 2P", cursive',
+                        fontSize: '12px',
+                        fontFamily: '"Noto Sans KR", sans-serif',
+                        fontWeight: 700,
                         color: cat.color,
                         background: `${cat.color}22`,
                         border: `1px solid ${cat.color}44`,
@@ -183,7 +184,7 @@ export default function CategoriesScreen({ categories, quests, onAddCategory, on
                         <button
                           onClick={() => { clearConfirmTimer(); onDeleteCategory?.(cat.id); setConfirmDeleteId(null) }}
                           style={{
-                            fontSize: '10px', fontFamily: '"Press Start 2P", cursive',
+                            fontSize: '13px', fontFamily: '"Noto Sans KR", sans-serif', fontWeight: 700,
                             color: '#ff6b6b', background: '#ff6b6b1a',
                             border: '1px solid #ff6b6b44', borderRadius: '6px',
                             padding: '6px 8px', cursor: 'pointer', minHeight: '36px',
@@ -301,8 +302,9 @@ export default function CategoriesScreen({ categories, quests, onAddCategory, on
                     border: `2px solid ${newName.trim() ? '#000' : '#3d3858'}`,
                     boxShadow: newName.trim() ? '3px 3px 0px #000' : 'none',
                     borderRadius: '8px',
-                    fontFamily: '"Press Start 2P", cursive',
-                    fontSize: '11px',
+                    fontFamily: '"Noto Sans KR", sans-serif',
+                    fontWeight: 800,
+                    fontSize: '14px',
                     cursor: newName.trim() ? 'pointer' : 'not-allowed',
                     minHeight: '52px',
                     transition: 'all 0.15s',

@@ -108,7 +108,7 @@ export default function HomeScreen({ quests, categories, level, xpInfo, onComple
             }}
           >
             <div style={{ fontSize: '18px', marginBottom: '4px' }}>🎉</div>
-            <div style={{ fontFamily: '"Press Start 2P", cursive', fontSize: '9px', color: '#7fdbca', lineHeight: 1.6 }}>
+            <div style={{ fontFamily: '"Press Start 2P", cursive', fontSize: '10px', color: '#7fdbca', lineHeight: 1.6 }}>
               ALL CLEAR!
             </div>
             <div style={{ fontFamily: '"Noto Sans KR", sans-serif', fontSize: '12px', color: '#8a8499', marginTop: '4px' }}>

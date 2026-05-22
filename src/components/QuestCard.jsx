@@ -163,8 +163,9 @@ export default function QuestCard({ quest, category, onComplete, onEdit, onDelet
           </span>
           <span
             style={{
-              fontSize: '9px',
-              fontFamily: '"Press Start 2P", cursive',
+              fontSize: '11px',
+              fontFamily: '"Noto Sans KR", sans-serif',
+              fontWeight: 700,
               color: DIFFICULTY_COLOR[quest.difficulty],
               background: `${DIFFICULTY_COLOR[quest.difficulty]}22`,
               border: `1px solid ${DIFFICULTY_COLOR[quest.difficulty]}44`,

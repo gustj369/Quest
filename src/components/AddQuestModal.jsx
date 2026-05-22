@@ -232,7 +232,7 @@ export default function AddQuestModal({ quests = [], categories, questToEdit = n
                         <span style={{ fontSize: '14px', color: d.color }}>
                           {'★'.repeat(d.stars)}{'☆'.repeat(3 - d.stars)}
                         </span>
-                        <span style={{ fontSize: '9px', fontFamily: '"Press Start 2P", cursive', color: d.color }}>
+                        <span style={{ fontSize: '12px', fontFamily: '"Noto Sans KR", sans-serif', fontWeight: 700, color: d.color }}>
                           +{XP_TABLE[d.value]}xp
                         </span>
                       </button>
@@ -282,8 +282,9 @@ export default function AddQuestModal({ quests = [], categories, questToEdit = n
                     border: `2px solid ${title.trim() && categoryId ? '#000' : '#3d3858'}`,
                     boxShadow: title.trim() && categoryId ? '3px 3px 0px #000' : 'none',
                     borderRadius: '8px',
-                    fontFamily: '"Press Start 2P", cursive',
-                    fontSize: '11px',
+                    fontFamily: '"Noto Sans KR", sans-serif',
+                    fontWeight: 800,
+                    fontSize: '14px',
                     cursor: title.trim() && categoryId ? 'pointer' : 'not-allowed',
                     transition: 'all 0.15s',
                     minHeight: '52px',
