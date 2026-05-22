@@ -15,7 +15,7 @@ import {
   parseTimeString,
 } from '../utils/notifications.js'
 
-export default function SettingsSheet({ character, onClose, onNameChange, onReset }) {
+export default function SettingsSheet({ character, user, onClose, onNameChange, onReset, onSignOut }) {
   const [name, setName] = useState(character.name || '용사')
   const [confirmReset, setConfirmReset] = useState(false)
   const [unsupportedMsg, setUnsupportedMsg] = useState(null)
@@ -249,6 +249,46 @@ export default function SettingsSheet({ character, onClose, onNameChange, onRese
                 )}
               </div>
             </div>
+
+            {/* 계정 정보 / 로그아웃 */}
+            {user && (
+              <div
+                style={{
+                  background: '#1e1a2e',
+                  borderRadius: '12px',
+                  border: '1px solid #3d3858',
+                  padding: '16px',
+                }}
+              >
+                <div style={{ fontSize: '12px', color: '#8a8499', fontFamily: '"Noto Sans KR", sans-serif', marginBottom: '10px' }}>
+                  로그인 계정
+                </div>
+                <div style={{ fontSize: '13px', color: '#f0ece8', fontFamily: '"Noto Sans KR", sans-serif', fontWeight: 600, marginBottom: '14px', wordBreak: 'break-all' }}>
+                  {user.email}
+                </div>
+                <button
+                  onClick={onSignOut}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: 'transparent',
+                    color: '#8a8499',
+                    border: '2px solid #3d3858',
+                    borderRadius: '8px',
+                    fontFamily: '"Noto Sans KR", sans-serif',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    minHeight: '44px',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = '#f0ece8'; e.currentTarget.style.borderColor = '#f0ece8' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = '#8a8499'; e.currentTarget.style.borderColor = '#3d3858' }}
+                >
+                  로그아웃
+                </button>
+              </div>
+            )}
 
             {/* 데이터 초기화 */}
             <div

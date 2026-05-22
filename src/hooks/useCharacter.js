@@ -2,8 +2,11 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { loadCharacter, saveCharacter, loadBadges, saveBadges, normalizeCharacter } from '../utils/storage.js'
 import { DEFAULT_CHARACTER, ALL_BADGES } from '../utils/defaults.js'
 import { xpProgressInLevel, XP_TABLE } from '../utils/xp.js'
+import { fetchCharacter, upsertCharacter } from '../utils/sync.js'
 
-export function useCharacter() {
+export function useCharacter(user = null) {
+  const userId = user?.id ?? null
+
   const [character, setCharacter] = useState(() => {
     const stored = loadCharacter()
     return normalizeCharacter(stored, DEFAULT_CHARACTER) ?? { ...DEFAULT_CHARACTER }
@@ -11,7 +14,7 @@ export function useCharacter() {
   const characterRef = useRef(character)
   const [earnedBadgeIds, setEarnedBadgeIds] = useState(() => loadBadges())
   const earnedBadgeIdsRef = useRef(earnedBadgeIds)
-  const [levelUpInfo, setLevelUpInfo] = useState(null) // { newLevel }
+  const [levelUpInfo, setLevelUpInfo] = useState(null)
   const levelUpTimerRef = useRef(null)
 
   const xpInfo = xpProgressInLevel(character.totalXp)
@@ -28,7 +31,35 @@ export function useCharacter() {
     return clearLevelUpTimer
   }, [clearLevelUpTimer])
 
-  // 퀘스트 완료 보상은 이 함수 하나로만 처리해 XP/완료 수 중복 반영을 방지
+  // ─── 로그인 시 캐릭터 클라우드 동기화 ───────────────────
+  useEffect(() => {
+    if (!userId) return
+
+    let cancelled = false
+
+    const syncCharacter = async () => {
+      try {
+        const cloudChar = await fetchCharacter(userId)
+        if (cancelled) return
+
+        if (!cloudChar) {
+          // 클라우드에 없으면 로컬 → 클라우드 업로드
+          await upsertCharacter(userId, characterRef.current)
+        } else {
+          // 클라우드 우선 — 로컬에 반영
+          characterRef.current = cloudChar
+          setCharacter(cloudChar)
+          saveCharacter(cloudChar)
+        }
+      } catch (err) {
+        console.error('[Sync] 캐릭터 동기화 실패', err)
+      }
+    }
+
+    syncCharacter()
+    return () => { cancelled = true }
+  }, [userId])
+
   const completeQuestEffect = useCallback((difficulty) => {
     const gain = XP_TABLE[difficulty] ?? 10
     const prev = characterRef.current
@@ -46,6 +77,9 @@ export function useCharacter() {
     characterRef.current = updated
     setCharacter(updated)
     saveCharacter(updated)
+    if (userId) {
+      upsertCharacter(userId, updated).catch(console.error)
+    }
     if (newLevel > oldLevel) {
       clearLevelUpTimer()
       levelUpTimerRef.current = setTimeout(() => {
@@ -53,14 +87,17 @@ export function useCharacter() {
         levelUpTimerRef.current = null
       }, 50)
     }
-  }, [clearLevelUpTimer])
+  }, [clearLevelUpTimer, userId])
 
   const updateName = useCallback((newName) => {
     const updated = { ...characterRef.current, name: newName }
     characterRef.current = updated
     setCharacter(updated)
     saveCharacter(updated)
-  }, [])
+    if (userId) {
+      upsertCharacter(userId, updated).catch(console.error)
+    }
+  }, [userId])
 
   const resetCharacter = useCallback(() => {
     clearLevelUpTimer()

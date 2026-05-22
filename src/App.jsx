@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useQuests } from './hooks/useQuests.js'
 import { useCharacter } from './hooks/useCharacter.js'
+import { useAuth } from './hooks/useAuth.js'
 import TabBar from './components/TabBar.jsx'
 import LevelUpModal from './components/LevelUpModal.jsx'
 import SettingsSheet from './components/SettingsSheet.jsx'
@@ -9,6 +10,7 @@ import InstallBanner from './components/InstallBanner.jsx'
 import HomeScreen from './screens/HomeScreen.jsx'
 import CategoriesScreen from './screens/CategoriesScreen.jsx'
 import CharacterScreen from './screens/CharacterScreen.jsx'
+import LoginScreen from './screens/LoginScreen.jsx'
 
 const screenVariants = {
   initial: { opacity: 0, y: 8 },
@@ -17,6 +19,7 @@ const screenVariants = {
 }
 
 export default function App() {
+  const { user, signOut, loading: authLoading } = useAuth()
   const [tab, setTab] = useState('home')
   const [showSettings, setShowSettings] = useState(false)
 
@@ -32,7 +35,7 @@ export default function App() {
     addCategory,
     deleteCategory,
     resetAllData,
-  } = useQuests()
+  } = useQuests(user)
 
   const {
     character,
@@ -45,7 +48,7 @@ export default function App() {
     dismissLevelUp,
     updateName,
     resetCharacter,
-  } = useCharacter()
+  } = useCharacter(user)
 
   // 뱃지 체크 — streak 포함
   useEffect(() => {
@@ -63,6 +66,33 @@ export default function App() {
     resetAllData()
     resetCharacter()
   }, [resetAllData, resetCharacter])
+
+  // 인증 로딩 중 — 스플래시
+  if (authLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100dvh',
+        background: '#1e1a2e',
+      }}>
+        <div style={{
+          fontFamily: '"Press Start 2P", cursive',
+          fontSize: '12px',
+          color: '#7fdbca',
+          animation: 'pulse 1.2s ease-in-out infinite',
+        }}>
+          LOADING...
+        </div>
+      </div>
+    )
+  }
+
+  // 미로그인 — 로그인 화면
+  if (!user) {
+    return <LoginScreen />
+  }
 
   return (
     <div
@@ -144,9 +174,11 @@ export default function App() {
           <SettingsSheet
             key="settings"
             character={character}
+            user={user}
             onClose={() => setShowSettings(false)}
             onNameChange={updateName}
             onReset={handleReset}
+            onSignOut={signOut}
           />
         )}
       </AnimatePresence>

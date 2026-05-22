@@ -6,20 +6,26 @@ import {
   loadHistory, saveHistory,
   pruneHistory,
 } from '../utils/storage.js'
+import {
+  fetchQuests, upsertQuests, upsertQuest, deleteQuestRemote,
+  fetchCategories, upsertCategories, deleteCategoryRemote,
+  fetchHistory, upsertHistoryDay, upsertAllHistory,
+  fetchLastReset, upsertLastReset,
+} from '../utils/sync.js'
 
 import { DEFAULT_CATEGORIES, DEFAULT_QUESTS } from '../utils/defaults.js'
 import { nanoid } from '../utils/nanoid.js'
 import { todayKey, shouldResetToday, calculateStreak } from '../utils/date.js'
 
-export function useQuests() {
+export function useQuests(user = null) {
+  const userId = user?.id ?? null
+
   const [quests, setQuests] = useState(() => {
     const stored = loadQuests()
-    // 기본 퀘스트는 인덱스만큼 ms 차이를 두어 고유한 createdAt 보장
     return stored.length > 0
       ? stored
       : DEFAULT_QUESTS.map((q, i) => ({ ...q, id: nanoid(), completedToday: false, createdAt: Date.now() + i }))
   })
-  // setQuests 외부에서 현재 상태를 동기적으로 읽기 위한 ref
   const questsRef = useRef(quests)
 
   const [categories, setCategories] = useState(() => {
@@ -30,20 +36,76 @@ export function useQuests() {
   const [history, setHistory] = useState(() => {
     const raw = loadHistory()
     const pruned = pruneHistory(raw)
-    // 정리된 항목이 있으면 바로 저장해 다음 실행 시에도 반영
     if (Object.keys(pruned).length !== Object.keys(raw).length) saveHistory(pruned)
     return pruned
   })
   const historyRef = useRef(history)
 
-  // 자정 기준 repeat별 퀘스트 리셋
+  // ─── 로그인 시 Supabase에서 데이터 pull (초기 동기화) ───────────────────
+  useEffect(() => {
+    if (!userId) return
+
+    let cancelled = false
+
+    const syncFromCloud = async () => {
+      try {
+        const [cloudQuests, cloudCats, cloudHistory, cloudLastReset] = await Promise.all([
+          fetchQuests(userId),
+          fetchCategories(userId),
+          fetchHistory(userId),
+          fetchLastReset(userId),
+        ])
+
+        if (cancelled) return
+
+        const isCloudEmpty = cloudQuests.length === 0 && cloudCats.length === 0
+
+        if (isCloudEmpty) {
+          // 클라우드가 비어있으면 로컬 → 클라우드로 업로드 (첫 로그인 마이그레이션)
+          const localQuests = questsRef.current
+          const localCats = categoriesRef.current
+          const localHistory = historyRef.current
+          const localLastReset = loadLastReset()
+
+          await Promise.all([
+            upsertQuests(userId, localQuests),
+            upsertCategories(userId, localCats),
+            upsertAllHistory(userId, localHistory),
+            localLastReset ? upsertLastReset(userId, localLastReset) : Promise.resolve(),
+          ])
+        } else {
+          // 클라우드 데이터를 로컬에 반영
+          questsRef.current = cloudQuests
+          setQuests(cloudQuests)
+          saveQuests(cloudQuests)
+
+          categoriesRef.current = cloudCats
+          setCategories(cloudCats)
+          saveCategories(cloudCats)
+
+          const pruned = pruneHistory(cloudHistory)
+          historyRef.current = pruned
+          setHistory(pruned)
+          saveHistory(pruned)
+
+          if (cloudLastReset) saveLastReset(cloudLastReset)
+        }
+      } catch (err) {
+        console.error('[Sync] 클라우드 동기화 실패 — 로컬 데이터 사용', err)
+      }
+    }
+
+    syncFromCloud()
+    return () => { cancelled = true }
+  }, [userId])
+
+  // ─── 자정 기준 repeat별 퀘스트 리셋 ───────────────────
   useEffect(() => {
     const lastReset = loadLastReset()
     const today = todayKey()
 
     if (lastReset !== today) {
       const reset = questsRef.current.map((q) => {
-        // repeat 설정에 따라 오늘 리셋 여부 결정
         if (shouldResetToday(q.repeat ?? 'daily', lastReset)) {
           return { ...q, completedToday: false }
         }
@@ -53,10 +115,14 @@ export function useQuests() {
       setQuests(reset)
       saveQuests(reset)
       saveLastReset(today)
+      if (userId) {
+        upsertQuests(userId, reset).catch(console.error)
+        upsertLastReset(userId, today).catch(console.error)
+      }
     }
-  }, [])
+  }, [userId])
 
-  // 히스토리 저장
+  // ─── 히스토리 기록 ───────────────────
   const recordHistory = useCallback((questId) => {
     const today = todayKey()
     const prev = historyRef.current
@@ -68,10 +134,12 @@ export function useQuests() {
     historyRef.current = updated
     setHistory(updated)
     saveHistory(updated)
-  }, [])
+    if (userId) {
+      upsertHistoryDay(userId, today, dayEntries).catch(console.error)
+    }
+  }, [userId])
 
   const completeQuest = useCallback((id) => {
-    // updater 밖에서 먼저 대상 찾기 — updater의 동기 실행을 가정하지 않음
     const target = questsRef.current.find((q) => q.id === id && !q.completedToday)
     if (!target) return null
 
@@ -81,10 +149,12 @@ export function useQuests() {
     questsRef.current = updated
     setQuests(updated)
     saveQuests(updated)
-    // 실제로 완료 처리될 퀘스트가 확인된 후에만 히스토리 기록
     recordHistory(id)
+    if (userId) {
+      upsertQuest(userId, { ...target, completedToday: true }).catch(console.error)
+    }
     return target
-  }, [recordHistory])
+  }, [recordHistory, userId])
 
   const addQuest = useCallback((data) => {
     const newQuest = {
@@ -100,7 +170,10 @@ export function useQuests() {
     questsRef.current = updated
     setQuests(updated)
     saveQuests(updated)
-  }, [])
+    if (userId) {
+      upsertQuest(userId, newQuest).catch(console.error)
+    }
+  }, [userId])
 
   const updateQuest = useCallback((id, data) => {
     const updated = questsRef.current.map((q) =>
@@ -117,14 +190,21 @@ export function useQuests() {
     questsRef.current = updated
     setQuests(updated)
     saveQuests(updated)
-  }, [])
+    if (userId) {
+      const target = updated.find((q) => q.id === id)
+      if (target) upsertQuest(userId, target).catch(console.error)
+    }
+  }, [userId])
 
   const deleteQuest = useCallback((id) => {
     const updated = questsRef.current.filter((q) => q.id !== id)
     questsRef.current = updated
     setQuests(updated)
     saveQuests(updated)
-  }, [])
+    if (userId) {
+      deleteQuestRemote(id).catch(console.error)
+    }
+  }, [userId])
 
   const addCategory = useCallback((data) => {
     const newCat = { id: nanoid(), ...data }
@@ -132,25 +212,28 @@ export function useQuests() {
     categoriesRef.current = updated
     setCategories(updated)
     saveCategories(updated)
-  }, [])
+    if (userId) {
+      upsertCategories(userId, [newCat]).catch(console.error)
+    }
+  }, [userId])
 
-  /**
-   * 카테고리를 삭제한다.
-   * 부작용: 해당 카테고리에 속한 퀘스트의 categoryId를 null로 변경해 고아 상태로 보존.
-   * 퀘스트 자체는 삭제하지 않으며, 수정 모달에서 새 카테고리를 재지정할 수 있다.
-   */
   const deleteCategory = useCallback((catId) => {
     const updatedCategories = categoriesRef.current.filter((c) => c.id !== catId)
     categoriesRef.current = updatedCategories
     setCategories(updatedCategories)
     saveCategories(updatedCategories)
+    if (userId) {
+      deleteCategoryRemote(catId).catch(console.error)
+    }
 
-    // 해당 카테고리 퀘스트는 유지하되 categoryId를 null로
     const updatedQuests = questsRef.current.map((q) => q.categoryId === catId ? { ...q, categoryId: null } : q)
     questsRef.current = updatedQuests
     setQuests(updatedQuests)
     saveQuests(updatedQuests)
-  }, [])
+    if (userId) {
+      upsertQuests(userId, updatedQuests).catch(console.error)
+    }
+  }, [userId])
 
   const resetAllData = useCallback(() => {
     const fresh = DEFAULT_QUESTS.map((q, i) => ({ ...q, id: nanoid(), createdAt: Date.now() + i }))
@@ -165,9 +248,9 @@ export function useQuests() {
     saveCategories(freshCats)
     saveLastReset(null)
     saveHistory({})
+    // 클라우드는 리셋하지 않음 (로컬만 초기화) — 필요 시 추후 추가
   }, [])
 
-  // history가 바뀔 때마다 스트릭 재계산
   const streak = useMemo(() => calculateStreak(history), [history])
 
   return {
