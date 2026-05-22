@@ -20,18 +20,32 @@ const VALID_REPEATS = new Set(['daily', 'weekday', 'weekend', 'weekly'])
 export function load(key, fallback = null) {
   try {
     const raw = localStorage.getItem(key)
-    return raw ? JSON.parse(raw) : fallback
+    // raw !== null 으로 체크: "null" 문자열이 저장된 경우에도 JSON.parse 시도하되
+    // 결과가 null이면 fallback을 반환해 pruneHistory 등 후속 처리 오류를 방지
+    if (raw === null) return fallback
+    const parsed = JSON.parse(raw)
+    return parsed !== null ? parsed : fallback
   } catch {
     // localStorage 접근 차단(SecurityError 등) 또는 JSON 파싱 실패 시 fallback 반환
     return fallback
   }
 }
 
+/**
+ * localStorage에 값을 저장한다.
+ * @returns {boolean} 저장 성공 여부 (QuotaExceededError 등 실패 시 false)
+ */
 export function save(key, value) {
   try {
     localStorage.setItem(key, JSON.stringify(value))
+    return true
   } catch (e) {
-    console.error('Storage write failed', e)
+    if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+      console.error('[Storage] 저장 공간 초과 — 데이터가 저장되지 않았습니다.', key)
+    } else {
+      console.error('[Storage] 저장 실패', key, e)
+    }
+    return false
   }
 }
 
@@ -99,42 +113,42 @@ export function loadQuests() {
   return normalizeQuests(load(KEYS.QUESTS, []))
 }
 export function saveQuests(quests) {
-  save(KEYS.QUESTS, quests)
+  return save(KEYS.QUESTS, quests)
 }
 
 export function loadCategories() {
   return normalizeCategories(load(KEYS.CATEGORIES, null))
 }
 export function saveCategories(cats) {
-  save(KEYS.CATEGORIES, cats)
+  return save(KEYS.CATEGORIES, cats)
 }
 
 export function loadCharacter() {
   return load(KEYS.CHARACTER, null)
 }
 export function saveCharacter(char) {
-  save(KEYS.CHARACTER, char)
+  return save(KEYS.CHARACTER, char)
 }
 
 export function loadLastReset() {
   return load(KEYS.LAST_RESET, null)
 }
 export function saveLastReset(date) {
-  save(KEYS.LAST_RESET, date)
+  return save(KEYS.LAST_RESET, date)
 }
 
 export function loadBadges() {
   return load(KEYS.BADGES, [])
 }
 export function saveBadges(badges) {
-  save(KEYS.BADGES, badges)
+  return save(KEYS.BADGES, badges)
 }
 
 export function loadHistory() {
   return load(KEYS.HISTORY, {})
 }
 export function saveHistory(history) {
-  save(KEYS.HISTORY, history)
+  return save(KEYS.HISTORY, history)
 }
 
 /**
