@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { Plus } from 'lucide-react'
+import { Plus, ChevronDown } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import XPBar from '../components/XPBar.jsx'
 import CategoryTabs from '../components/CategoryTabs.jsx'
@@ -12,6 +12,8 @@ export default function HomeScreen({ quests, categories, level, xpInfo, onComple
   const [selectedCat, setSelectedCat] = useState('all')
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingQuest, setEditingQuest] = useState(null)
+  // 완료된 퀘스트 섹션 펼침 여부 — 기본 접힘으로 미완료 퀘스트에 집중
+  const [showCompleted, setShowCompleted] = useState(false)
   // XP 획득 팝업 목록 — { id, amount } 복수 동시 지원
   const [xpPopups, setXpPopups] = useState([])
   const popupTimersRef = useRef([])
@@ -58,13 +60,14 @@ export default function HomeScreen({ quests, categories, level, xpInfo, onComple
     return counts
   }, [quests])
 
-  // 필터링 + 완료된 것 뒤로
-  const filtered = useMemo(() => {
+  // 카테고리 필터링 후 미완료/완료 분리 (각각 createdAt 순)
+  const { pending, done } = useMemo(() => {
     const base = selectedCat === 'all' ? quests : quests.filter((q) => q.categoryId === selectedCat)
-    return [...base].sort((a, b) => {
-      if (a.completedToday === b.completedToday) return a.createdAt - b.createdAt
-      return a.completedToday ? 1 : -1
-    })
+    const sorted = [...base].sort((a, b) => a.createdAt - b.createdAt)
+    return {
+      pending: sorted.filter((q) => !q.completedToday),
+      done:    sorted.filter((q) =>  q.completedToday),
+    }
   }, [quests, selectedCat])
 
   const completedCount = quests.filter((q) => q.completedToday).length
@@ -75,12 +78,12 @@ export default function HomeScreen({ quests, categories, level, xpInfo, onComple
     if (quests.length === 0) {
       return { icon: '⚔️', title: '아직 퀘스트가 없어요', sub: '아래 + 버튼으로 첫 퀘스트를 추가하세요' }
     }
-    if (selectedCat !== 'all' && filtered.length === 0) {
+    if (selectedCat !== 'all' && pending.length === 0 && done.length === 0) {
       const cat = categories.find((c) => c.id === selectedCat)
       return { icon: cat?.emoji ?? '📂', title: `${cat?.name ?? '이 카테고리'}에 퀘스트가 없어요`, sub: '+ 버튼으로 이 카테고리에 퀘스트를 추가하세요' }
     }
     return null
-  }, [quests.length, selectedCat, filtered.length, categories])
+  }, [quests.length, selectedCat, pending.length, done.length, categories])
 
   return (
     <>
@@ -135,37 +138,78 @@ export default function HomeScreen({ quests, categories, level, xpInfo, onComple
               <div style={{ fontSize: '12px', marginTop: '6px' }}>{emptyMessage.sub}</div>
             </div>
           ) : (
-            filtered.map((quest, i) => (
-              <QuestCard
-                key={quest.id}
-                quest={quest}
-                category={categoryById[quest.categoryId]}
-                onComplete={handleComplete}
-                onEdit={setEditingQuest}
-                onDelete={onDelete}
-                index={i}
-              />
-            ))
+            <>
+              {/* 미완료 퀘스트 */}
+              {pending.map((quest, i) => (
+                <QuestCard
+                  key={quest.id}
+                  quest={quest}
+                  category={categoryById[quest.categoryId]}
+                  onComplete={handleComplete}
+                  onEdit={setEditingQuest}
+                  onDelete={onDelete}
+                  index={i}
+                />
+              ))}
+
+              {/* 완료 섹션 토글 헤더 */}
+              {done.length > 0 && (
+                <button
+                  onClick={() => setShowCompleted((prev) => !prev)}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '14px 0',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div style={{ flex: 1, height: '1px', background: '#3d3858' }} />
+                  <span style={{
+                    fontFamily: '"Noto Sans KR", sans-serif',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#8a8499',
+                    whiteSpace: 'nowrap',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}>
+                    ✓ 완료됨 · {done.length}개
+                    <ChevronDown
+                      size={14}
+                      color="#8a8499"
+                      style={{
+                        transform: showCompleted ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.2s ease',
+                      }}
+                    />
+                  </span>
+                  <div style={{ flex: 1, height: '1px', background: '#3d3858' }} />
+                </button>
+              )}
+
+              {/* 완료된 퀘스트 — 토글 시 표시 */}
+              {showCompleted && done.map((quest, i) => (
+                <QuestCard
+                  key={quest.id}
+                  quest={quest}
+                  category={categoryById[quest.categoryId]}
+                  onComplete={handleComplete}
+                  onEdit={setEditingQuest}
+                  onDelete={onDelete}
+                  index={i}
+                />
+              ))}
+
+              {/* 완료 섹션 하단 여백 */}
+              {done.length > 0 && <div style={{ height: '8px' }} />}
+            </>
           )}
         </div>
-
-        {/* 하단 완료 카운트 */}
-        {quests.length > 0 && (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: '16px',
-              marginBottom: '12px',
-              fontSize: '12px',
-              color: '#8a8499',
-              fontFamily: '"Noto Sans KR", sans-serif',
-            }}
-          >
-            완료한 퀘스트:{' '}
-            <span style={{ color: '#7fdbca', fontWeight: 700 }}>{completedCount}</span>
-            /{quests.length}
-          </div>
-        )}
       </div>
 
       {/* XP 획득 팝업 */}
