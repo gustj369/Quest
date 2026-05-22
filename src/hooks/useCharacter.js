@@ -74,11 +74,11 @@ export function useCharacter() {
     saveBadges([])
   }, [clearLevelUpTimer])
 
-  const checkBadges = useCallback((char, lvl) => {
+  const checkBadges = useCallback((char, lvl, streak = 0) => {
     const current = earnedBadgeIdsRef.current
     const newIds = []
     ALL_BADGES.forEach((badge) => {
-      if (!current.includes(badge.id) && badge.condition(char, lvl)) {
+      if (!current.includes(badge.id) && badge.condition(char, lvl, streak)) {
         newIds.push(badge.id)
       }
     })

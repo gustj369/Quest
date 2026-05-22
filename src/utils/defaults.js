@@ -57,6 +57,7 @@ export const QUEST_TEMPLATES = [
 
 export const DEFAULT_QUESTS = QUEST_TEMPLATES.filter((t) => DEFAULT_QUEST_TITLES.has(t.title))
 
+// condition(character, level, streak) — 세 번째 인자로 스트릭 전달
 export const ALL_BADGES = [
   { id: 'first_quest',    name: '첫 퀘스트',   emoji: '⚔️',  desc: '첫 퀘스트 완료',           hint: '1개 완료',    condition: (c) => c.totalCompleted >= 1 },
   { id: 'ten_quests',     name: '베테랑',       emoji: '🛡️',  desc: '누적 10개 완료',            hint: '10개 완료',   condition: (c) => c.totalCompleted >= 10 },
@@ -66,4 +67,8 @@ export const ALL_BADGES = [
   { id: 'level_10',       name: '레벨 10',      emoji: '🌟',  desc: '레벨 10 달성',              hint: 'Lv.10',       condition: (c, lvl) => lvl >= 10 },
   { id: 'level_20',       name: '레벨 20',      emoji: '💎',  desc: '레벨 20 달성',              hint: 'Lv.20',       condition: (c, lvl) => lvl >= 20 },
   { id: 'hard_quest',     name: '용감한 자',    emoji: '🔥',  desc: '어려움 퀘스트 첫 완료',    hint: '어려움 1회',  condition: (c) => c.hardCompleted >= 1 },
+  // 스트릭 뱃지
+  { id: 'streak_3',       name: '3일 연속',     emoji: '🔥',  desc: '3일 연속 달성',             hint: '3일 연속',    condition: (c, lvl, s) => s >= 3 },
+  { id: 'streak_7',       name: '7일 연속',     emoji: '⚡',  desc: '7일 연속 달성',             hint: '7일 연속',    condition: (c, lvl, s) => s >= 7 },
+  { id: 'streak_30',      name: '한 달 연속',   emoji: '💫',  desc: '30일 연속 달성',            hint: '30일 연속',   condition: (c, lvl, s) => s >= 30 },
 ]

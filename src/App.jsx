@@ -24,6 +24,7 @@ export default function App() {
     quests,
     categories,
     history,
+    streak,
     completeQuest,
     addQuest,
     updateQuest,
@@ -46,10 +47,10 @@ export default function App() {
     resetCharacter,
   } = useCharacter()
 
-  // 뱃지 체크
+  // 뱃지 체크 — streak 포함
   useEffect(() => {
-    checkBadges(character, level)
-  }, [character, level, checkBadges])
+    checkBadges(character, level, streak)
+  }, [character, level, streak, checkBadges])
 
   const handleComplete = useCallback((id) => {
     const quest = completeQuest(id)
@@ -85,6 +86,7 @@ export default function App() {
                 categories={categories}
                 level={level}
                 xpInfo={xpInfo}
+                streak={streak}
                 onComplete={handleComplete}
                 onAdd={addQuest}
                 onUpdate={updateQuest}
@@ -109,6 +111,7 @@ export default function App() {
                 character={character}
                 level={level}
                 xpInfo={xpInfo}
+                streak={streak}
                 earnedBadgeIds={earnedBadgeIds}
                 quests={quests}
                 history={history}

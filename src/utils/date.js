@@ -21,6 +21,41 @@ export function todayDow() {
 }
 
 /**
+ * history 객체로부터 현재 연속 달성 일수(스트릭)를 계산한다.
+ * - 오늘 1개 이상 완료했으면 오늘부터 역순으로 카운트
+ * - 오늘 0개면 어제부터 역순으로 카운트 (당일 유예 — 아직 오늘이 끝나지 않음)
+ * @param {{ [dateKey: string]: string[] }} history
+ * @returns {number} 연속 일수 (0 이상)
+ */
+export function calculateStreak(history) {
+  if (!history || typeof history !== 'object') return 0
+
+  const date = new Date()
+  const todayStr = formatDateKey(date)
+  const todayEntries = history[todayStr]
+  const todayDone = Array.isArray(todayEntries) && todayEntries.length > 0
+
+  // 오늘 완료 없으면 어제부터 시작
+  if (!todayDone) {
+    date.setDate(date.getDate() - 1)
+  }
+
+  let streak = 0
+  while (streak <= 9999) {
+    const key = formatDateKey(date)
+    const entries = history[key]
+    if (Array.isArray(entries) && entries.length > 0) {
+      streak++
+      date.setDate(date.getDate() - 1)
+    } else {
+      break
+    }
+  }
+
+  return streak
+}
+
+/**
  * 특정 repeat 설정이 오늘 리셋되어야 하는지 확인
  * @param {'daily'|'weekday'|'weekend'|'weekly'} repeat
  * @param {string|null} lastResetDate - 마지막 리셋일 (YYYY-MM-DD)

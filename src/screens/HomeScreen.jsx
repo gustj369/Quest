@@ -8,7 +8,7 @@ import QuestCard from '../components/QuestCard.jsx'
 import AddQuestModal from '../components/AddQuestModal.jsx'
 import { XP_TABLE } from '../utils/xp.js'
 
-export default function HomeScreen({ quests, categories, level, xpInfo, onComplete, onAdd, onUpdate, onDelete, onSettings }) {
+export default function HomeScreen({ quests, categories, level, xpInfo, streak = 0, onComplete, onAdd, onUpdate, onDelete, onSettings }) {
   const [selectedCat, setSelectedCat] = useState('all')
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingQuest, setEditingQuest] = useState(null)
@@ -90,6 +90,39 @@ export default function HomeScreen({ quests, categories, level, xpInfo, onComple
       <div className="flex-1 overflow-y-auto" style={{ paddingBottom: '112px' }}>
         <Header level={level} onSettings={onSettings} />
         <XPBar xpInfo={xpInfo} level={level} />
+
+        {/* 스트릭 배지 — 1일 이상일 때만 표시 */}
+        {streak > 0 && (
+          <div className="px-5 pb-3">
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: '#f5c54218',
+              border: '1px solid #f5c54240',
+              borderRadius: '20px',
+              padding: '5px 12px',
+            }}>
+              <span style={{ fontSize: '14px', lineHeight: 1 }}>🔥</span>
+              <span style={{
+                fontFamily: '"Press Start 2P", cursive',
+                fontSize: '10px',
+                color: '#f5c542',
+              }}>
+                {streak}일
+              </span>
+              <span style={{
+                fontFamily: '"Noto Sans KR", sans-serif',
+                fontSize: '12px',
+                fontWeight: 700,
+                color: '#8a8499',
+              }}>
+                연속 달성
+              </span>
+            </div>
+          </div>
+        )}
+
         <CategoryTabs
           categories={categories}
           selected={selectedCat}

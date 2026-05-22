@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import {
   loadQuests, saveQuests,
   loadCategories, saveCategories,
@@ -9,7 +9,7 @@ import {
 
 import { DEFAULT_CATEGORIES, DEFAULT_QUESTS } from '../utils/defaults.js'
 import { nanoid } from '../utils/nanoid.js'
-import { todayKey, shouldResetToday } from '../utils/date.js'
+import { todayKey, shouldResetToday, calculateStreak } from '../utils/date.js'
 
 export function useQuests() {
   const [quests, setQuests] = useState(() => {
@@ -167,10 +167,14 @@ export function useQuests() {
     saveHistory({})
   }, [])
 
+  // history가 바뀔 때마다 스트릭 재계산
+  const streak = useMemo(() => calculateStreak(history), [history])
+
   return {
     quests,
     categories,
     history,
+    streak,
     completeQuest,
     addQuest,
     updateQuest,

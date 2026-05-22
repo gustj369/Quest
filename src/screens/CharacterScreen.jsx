@@ -60,7 +60,7 @@ function GrassCalendar({ history }) {
   )
 }
 
-export default function CharacterScreen({ character, level, xpInfo, earnedBadgeIds, quests, history }) {
+export default function CharacterScreen({ character, level, xpInfo, streak = 0, earnedBadgeIds, quests, history }) {
   const todayCompleted = quests.filter((q) => q.completedToday).length
   const nextLevelXp = xpInfo.remaining
 
@@ -96,8 +96,9 @@ export default function CharacterScreen({ character, level, xpInfo, earnedBadgeI
           <div className="character-stat-grid">
             {[
               { label: '총 완료', value: character.totalCompleted, color: '#7fdbca', icon: '✓' },
-              { label: '오늘',    value: todayCompleted,           color: '#f5c542', icon: '◆' },
+              { label: '스트릭',  value: `${streak}일`,            color: '#f5c542', icon: '🔥' },
               { label: '총 XP',  value: character.totalXp,        color: '#a78bfa', icon: 'XP' },
+              { label: '오늘',    value: todayCompleted,           color: '#ff9f7f', icon: '◆' },
             ].map((stat) => (
               <div
                 key={stat.label}
