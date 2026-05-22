@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import Header from '../components/Header.jsx'
@@ -6,11 +6,20 @@ import XPBar from '../components/XPBar.jsx'
 import CategoryTabs from '../components/CategoryTabs.jsx'
 import QuestCard from '../components/QuestCard.jsx'
 import AddQuestModal from '../components/AddQuestModal.jsx'
+import { XP_TABLE } from '../utils/xp.js'
 
 export default function HomeScreen({ quests, categories, level, xpInfo, onComplete, onAdd, onUpdate, onDelete, onSettings }) {
   const [selectedCat, setSelectedCat] = useState('all')
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingQuest, setEditingQuest] = useState(null)
+  // XP 획득 팝업 목록 — { id, amount } 복수 동시 지원
+  const [xpPopups, setXpPopups] = useState([])
+  const popupTimersRef = useRef([])
+
+  // 언마운트 시 팝업 타이머 전체 정리
+  useEffect(() => {
+    return () => { popupTimersRef.current.forEach(clearTimeout) }
+  }, [])
 
   // 선택된 카테고리가 삭제된 경우 'all'로 복귀
   useEffect(() => {
@@ -18,6 +27,21 @@ export default function HomeScreen({ quests, categories, level, xpInfo, onComple
       setSelectedCat('all')
     }
   }, [categories, selectedCat])
+
+  // 퀘스트 완료 시 XP 팝업 트리거
+  const handleComplete = useCallback((id) => {
+    const quest = quests.find((q) => q.id === id && !q.completedToday)
+    if (quest) {
+      const amount = XP_TABLE[quest.difficulty] ?? 10
+      const popupId = Date.now() + Math.random()
+      setXpPopups((prev) => [...prev, { id: popupId, amount }])
+      const timer = setTimeout(() => {
+        setXpPopups((prev) => prev.filter((p) => p.id !== popupId))
+      }, 1100)
+      popupTimersRef.current.push(timer)
+    }
+    onComplete(id)
+  }, [quests, onComplete])
 
   // O(1) 카테고리 조회용 Map
   const categoryById = useMemo(
@@ -116,7 +140,7 @@ export default function HomeScreen({ quests, categories, level, xpInfo, onComple
                 key={quest.id}
                 quest={quest}
                 category={categoryById[quest.categoryId]}
-                onComplete={onComplete}
+                onComplete={handleComplete}
                 onEdit={setEditingQuest}
                 onDelete={onDelete}
                 index={i}
@@ -143,6 +167,28 @@ export default function HomeScreen({ quests, categories, level, xpInfo, onComple
           </div>
         )}
       </div>
+
+      {/* XP 획득 팝업 */}
+      {xpPopups.map((popup) => (
+        <div
+          key={popup.id}
+          className="xp-popup"
+          style={{
+            position: 'fixed',
+            top: '108px',
+            right: 'max(20px, calc((100vw - 390px) / 2 + 20px))',
+            fontFamily: '"Press Start 2P", cursive',
+            fontSize: '13px',
+            color: '#f5c542',
+            textShadow: '2px 2px 0 #000, 0 0 12px rgba(245,197,66,0.6)',
+            pointerEvents: 'none',
+            zIndex: 30,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          +{popup.amount} XP
+        </div>
+      ))}
 
       {/* 퀘스트 추가 FAB */}
       <button
