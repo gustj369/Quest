@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <external-path name="my_images" path="." />
-    <cache-path name="my_cache_images" path="." />
+    <!-- 앱 내부 파일만 공유 가능하도록 범위 제한 -->
+    <files-path name="files" path="." />
+    <cache-path name="cache" path="." />
+    <!-- 외부 저장소는 앱 전용 디렉토리로만 한정 -->
+    <external-path name="external_files" path="Android/data/com.gustj.quest/files/" />
 </paths>
