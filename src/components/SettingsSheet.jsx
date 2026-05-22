@@ -7,26 +7,23 @@ import {
   loadNotificationTime,
   saveNotificationTime,
 } from '../utils/storage.js'
+import {
+  requestNotificationPermission,
+  checkNotificationPermission,
+  scheduleDailyReminder,
+  cancelAllReminders,
+  parseTimeString,
+} from '../utils/notifications.js'
 
 export default function SettingsSheet({ character, onClose, onNameChange, onReset }) {
   const [name, setName] = useState(character.name || '용사')
   const [confirmReset, setConfirmReset] = useState(false)
   const [unsupportedMsg, setUnsupportedMsg] = useState(null)
   const unsupportedTimerRef = useRef(null)
-  const [notifEnabled, setNotifEnabled] = useState(() => {
-    // 브라우저 권한이 실제로 granted이고, 사용자가 끄지 않은 경우만 ON
-    if (typeof Notification === 'undefined') return false
-    return Notification.permission === 'granted' && loadNotificationEnabled()
-  })
+  const [notifEnabled, setNotifEnabled] = useState(() => loadNotificationEnabled())
   const [notifTime, setNotifTime] = useState(() => loadNotificationTime())
+  const [notifStatus, setNotifStatus] = useState('idle') // 'idle'|'loading'|'error'
   const resetTimerRef = useRef(null)
-  const notificationStatus = typeof Notification === 'undefined'
-    ? '이 브라우저는 알림을 지원하지 않습니다'
-    : Notification.permission === 'granted'
-      ? `매일 ${notifTime}에 리마인더 예정`
-      : Notification.permission === 'denied'
-        ? '브라우저 설정에서 알림 권한을 허용해야 합니다'
-        : '알림을 켜면 권한을 요청합니다'
 
   const clearResetTimer = useCallback(() => {
     if (resetTimerRef.current) {
@@ -69,32 +66,58 @@ export default function SettingsSheet({ character, onClose, onNameChange, onRese
   }
 
   const toggleNotif = async () => {
-    if (!notifEnabled) {
-      // Notification API가 없는 환경(iOS 구형, 일부 브라우저) 방어
-      if (typeof Notification === 'undefined') {
-        setUnsupportedMsg('이 기기는 푸시 알림을 지원하지 않습니다.')
-        if (unsupportedTimerRef.current) clearTimeout(unsupportedTimerRef.current)
-        unsupportedTimerRef.current = setTimeout(() => {
-          setUnsupportedMsg(null)
-          unsupportedTimerRef.current = null
-        }, 3000)
-        return
-      }
-      const perm = await Notification.requestPermission().catch(() => 'denied')
-      if (perm === 'granted') {
-        setNotifEnabled(true)
-        saveNotificationEnabled(true)
-      }
-    } else {
+    if (notifEnabled) {
+      // 알림 끄기
+      await cancelAllReminders()
       setNotifEnabled(false)
       saveNotificationEnabled(false)
+      return
     }
+
+    // 알림 켜기 — 권한 요청 후 스케줄 등록
+    setNotifStatus('loading')
+    const permission = await checkNotificationPermission()
+    const granted = permission === 'granted'
+      ? true
+      : await requestNotificationPermission()
+
+    if (!granted) {
+      setNotifStatus('error')
+      setUnsupportedMsg('알림 권한이 거부되었습니다. 기기 설정에서 Quest 알림을 허용해주세요.')
+      if (unsupportedTimerRef.current) clearTimeout(unsupportedTimerRef.current)
+      unsupportedTimerRef.current = setTimeout(() => {
+        setUnsupportedMsg(null)
+        unsupportedTimerRef.current = null
+      }, 4000)
+      setNotifStatus('idle')
+      return
+    }
+
+    const { hour, minute } = parseTimeString(notifTime)
+    const ok = await scheduleDailyReminder(hour, minute)
+    if (ok) {
+      setNotifEnabled(true)
+      saveNotificationEnabled(true)
+    } else {
+      setUnsupportedMsg('알림 등록에 실패했습니다. 다시 시도해주세요.')
+      if (unsupportedTimerRef.current) clearTimeout(unsupportedTimerRef.current)
+      unsupportedTimerRef.current = setTimeout(() => {
+        setUnsupportedMsg(null)
+        unsupportedTimerRef.current = null
+      }, 3000)
+    }
+    setNotifStatus('idle')
   }
 
-  const handleNotifTimeChange = (e) => {
+  const handleNotifTimeChange = async (e) => {
     const next = e.target.value || '09:00'
     setNotifTime(next)
     saveNotificationTime(next)
+    // 알림이 켜져 있으면 새 시간으로 즉시 재등록
+    if (notifEnabled) {
+      const { hour, minute } = parseTimeString(next)
+      await scheduleDailyReminder(hour, minute)
+    }
   }
 
   return (
@@ -165,14 +188,15 @@ export default function SettingsSheet({ character, onClose, onNameChange, onRese
                     <div style={{ fontSize: '13px', fontFamily: '"Noto Sans KR", sans-serif', fontWeight: 700, color: '#f0ece8' }}>
                       푸시 알림
                     </div>
-                    <div style={{ fontSize: '11px', color: '#8a8499', fontFamily: '"Noto Sans KR"', marginTop: '2px' }}>
-                      {notificationStatus}
+                    <div style={{ fontSize: '11px', color: notifEnabled ? '#7fdbca' : '#8a8499', fontFamily: '"Noto Sans KR"', marginTop: '2px' }}>
+                      {notifEnabled ? `매일 ${notifTime}에 리마인더 발송 중` : '탭해서 매일 리마인더를 켜세요'}
                     </div>
                   </div>
                 </div>
                 {/* 토글 스위치 */}
                 <button
                   onClick={toggleNotif}
+                  disabled={notifStatus === 'loading'}
                   style={{
                     width: '52px',
                     height: '28px',
@@ -180,10 +204,11 @@ export default function SettingsSheet({ character, onClose, onNameChange, onRese
                     background: notifEnabled ? '#7fdbca' : '#3d3858',
                     border: '2px solid #000',
                     boxShadow: '2px 2px 0 #000',
-                    cursor: 'pointer',
+                    cursor: notifStatus === 'loading' ? 'wait' : 'pointer',
                     position: 'relative',
                     transition: 'background 0.2s',
                     flexShrink: 0,
+                    opacity: notifStatus === 'loading' ? 0.6 : 1,
                   }}
                 >
                   <div
@@ -215,11 +240,13 @@ export default function SettingsSheet({ character, onClose, onNameChange, onRese
                   type="time"
                   value={notifTime}
                   onChange={handleNotifTimeChange}
-                  disabled={typeof Notification === 'undefined' || !notifEnabled}
+                  disabled={!notifEnabled}
                 />
-                <div style={{ marginTop: '6px', fontSize: '11px', color: '#8a8499', fontFamily: '"Noto Sans KR", sans-serif', lineHeight: 1.5 }}>
-                  현재는 시간 설정만 저장되며, 실제 푸시 발송은 다음 단계에서 연결됩니다.
-                </div>
+                {notifEnabled && (
+                  <div style={{ marginTop: '6px', fontSize: '11px', color: '#7fdbca88', fontFamily: '"Noto Sans KR", sans-serif', lineHeight: 1.5 }}>
+                    시간을 바꾸면 즉시 재등록됩니다
+                  </div>
+                )}
               </div>
             </div>
 
