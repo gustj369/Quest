@@ -8,9 +8,6 @@ export function xpForLevel(level) {
   return level * 100
 }
 
-export function levelFromTotalXp(totalXp) {
-  return xpProgressInLevel(totalXp).level
-}
 
 export function xpProgressInLevel(totalXp) {
   const safeXp = Number.isFinite(totalXp) && totalXp >= 0 ? totalXp : 0
